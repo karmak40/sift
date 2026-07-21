@@ -51,6 +51,13 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
     await _generate();
   }
 
+  Future<void> _openFile() async {
+    final message = await ref.read(fileStorageServiceProvider).openExternally(_doc.storageKey);
+    if (message != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
   Future<void> _generate() async {
     setState(() => _generating = true);
     try {
@@ -197,7 +204,7 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () {},
+                        onPressed: _openFile,
                         child: const Text('Open file'),
                       ),
                     ),

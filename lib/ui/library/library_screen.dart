@@ -98,7 +98,11 @@ class LibraryScreen extends ConsumerWidget {
             ),
             Expanded(
               child: filtered.isEmpty
-                  ? _EmptyState(onClear: controller.clearFilters)
+                  ? _EmptyState(
+                      onClear: controller.clearFilters,
+                      noDocumentsAtAll: docs.isEmpty,
+                      aiOnly: aiOnly,
+                    )
                   : (aiOnly || uiState.viewMode == LibraryViewMode.list)
                       ? _DocList(
                           docs: filtered,
@@ -212,17 +216,38 @@ class _Chip extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.onClear});
+  const _EmptyState({
+    required this.onClear,
+    required this.noDocumentsAtAll,
+    required this.aiOnly,
+  });
+
   final VoidCallback onClear;
+  final bool noDocumentsAtAll;
+  final bool aiOnly;
 
   @override
   Widget build(BuildContext context) {
+    if (noDocumentsAtAll) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Text(
+            aiOnly
+                ? 'No summarized documents yet.'
+                : 'No documents yet. Tap + to upload your first document.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: SiftColors.textMuted, fontSize: 13),
+          ),
+        ),
+      );
+    }
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text('No documents match.', style: TextStyle(color: SiftColors.textMuted, fontSize: 13)),
-          TextButton(onPressed: onClear, child: const Text('Clear filters')),
+          if (!aiOnly) TextButton(onPressed: onClear, child: const Text('Clear filters')),
         ],
       ),
     );

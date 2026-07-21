@@ -9,6 +9,7 @@ import '../data/repository/category_repository.dart';
 import '../data/repository/document_repository.dart';
 import '../data/repository/drift_category_repository.dart';
 import '../data/repository/drift_document_repository.dart';
+import '../data/storage_location_service.dart';
 import '../data/web_file_storage_service.dart';
 import '../services/ai/ai_summary_service.dart';
 import '../services/ai/disabled_ai_summary_service.dart';
@@ -28,11 +29,24 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
   return db;
 });
 
+final storageLocationServiceProvider = Provider<StorageLocationService>(
+  (ref) => StorageLocationService(),
+);
+
+/// The desktop/mobile filesystem-backed storage service, typed concretely
+/// (not as the [FileStorageService] interface) so the Settings screen's
+/// "change storage folder" control — a Windows-only feature, see
+/// `settings_screen.dart` — can call [IoFileStorageService.changeBaseDirectory]
+/// directly. Only ever read on non-web platforms.
+final ioFileStorageServiceProvider = Provider<IoFileStorageService>((ref) {
+  return IoFileStorageService(ref.watch(storageLocationServiceProvider));
+});
+
 final fileStorageServiceProvider = Provider<FileStorageService>((ref) {
   if (kIsWeb) {
     return WebFileStorageService(ref.watch(appDatabaseProvider));
   }
-  return IoFileStorageService();
+  return ref.watch(ioFileStorageServiceProvider);
 });
 
 final documentRepositoryProvider = Provider<DocumentRepository>((ref) {

@@ -1,11 +1,23 @@
+import 'dart:io' show Platform;
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/data_providers.dart';
 import '../../providers/library_controller.dart';
+import '../../providers/storage_location_controller.dart';
 import '../theme.dart';
 import '../widgets/ai_toggle_row.dart';
 import '../widgets/section_label.dart';
+
+/// Choosing where files live on disk only makes sense on a real desktop
+/// filesystem — Android/iOS are sandboxed, and Web has no filesystem at all
+/// (see `WebFileStorageService`). Gated to Windows specifically per how this
+/// was asked for; drop `Platform.isWindows` for other desktop targets later
+/// if needed.
+bool get _canChangeStorageLocation => !kIsWeb && Platform.isWindows;
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -89,6 +101,10 @@ class SettingsScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            if (_canChangeStorageLocation) ...[
+              const Divider(height: 1),
+              const _StorageLocationRow(),
+            ],
           ],
         ),
         const SizedBox(height: 22),
@@ -139,6 +155,86 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _StorageLocationRow extends ConsumerWidget {
+  const _StorageLocationRow();
+
+  Future<void> _choose(BuildContext context, WidgetRef ref) async {
+    final picked = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: 'Choose a folder to store Sift files in',
+    );
+    if (picked == null) return;
+    await ref.read(storageLocationControllerProvider.notifier).changePath(picked);
+  }
+
+  Future<void> _resetToDefault(BuildContext context, WidgetRef ref) async {
+    final controller = ref.read(storageLocationControllerProvider.notifier);
+    final defaultPath = await controller.defaultPath();
+    await controller.changePath(null);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Files moved back to $defaultPath')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pathAsync = ref.watch(storageLocationControllerProvider);
+    final busy = pathAsync.isLoading;
+
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Files folder',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  pathAsync.when(
+                    data: (path) => path,
+                    loading: () => 'Moving files…',
+                    error: (e, _) => 'Could not read current folder',
+                  ),
+                  style: monoStyle(fontSize: 11, color: SiftColors.textSecondary),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          if (busy)
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => _choose(context, ref),
+                  child: const Text('Change…'),
+                ),
+                TextButton(
+                  onPressed: () => _resetToDefault(context, ref),
+                  child: Text('Reset', style: TextStyle(color: SiftColors.textMuted)),
+                ),
+              ],
+            ),
+        ],
+      ),
     );
   }
 }

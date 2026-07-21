@@ -37,4 +37,12 @@ class WebFileStorageService implements FileStorageService {
     await (_db.delete(_db.webFiles)..where((f) => f.id.equals(storageKey)))
         .go();
   }
+
+  @override
+  Future<String?> openExternally(String storageKey) async {
+    // There's no real filesystem in a browser sandbox to hand off to an
+    // "open with" dialog — only Android/iOS/desktop (IoFileStorageService)
+    // support this today.
+    return "Opening files isn't supported in the web preview yet — try Android, iOS, or the Windows app.";
+  }
 }
