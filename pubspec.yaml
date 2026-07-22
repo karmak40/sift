@@ -49,6 +49,8 @@ dependencies:
   dio: ^5.7.0
   shared_preferences: ^2.3.3
   open_filex: ^4.7.0
+  local_auth: ^2.3.0
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers/app_init_provider.dart';
 import 'ui/home/home_shell.dart';
+import 'ui/lock/app_lock_gate.dart';
 import 'ui/theme.dart';
 
 void main() {
@@ -32,7 +33,7 @@ class _AppRoot extends ConsumerWidget {
     return init.when(
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, st) => Scaffold(body: Center(child: Text('Startup failed: $e'))),
-      data: (_) => const HomeShell(),
+      data: (_) => const AppLockGate(child: HomeShell()),
     );
   }
 }

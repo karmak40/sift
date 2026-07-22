@@ -5,9 +5,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/app_lock_providers.dart';
 import '../../providers/data_providers.dart';
 import '../../providers/library_controller.dart';
 import '../../providers/storage_location_controller.dart';
+import '../category/manage_categories_sheet.dart';
+import '../lock/pin_setup_sheet.dart';
 import '../theme.dart';
 import '../widgets/ai_toggle_row.dart';
 import '../widgets/section_label.dart';
@@ -113,7 +116,9 @@ class SettingsScreen extends ConsumerWidget {
           children: [
             _SettingsRow(
               title: 'Categories',
+              subtitle: 'Add or remove categories',
               trailing: Text('${cats.length}', style: monoStyle(fontSize: 13, color: SiftColors.textSecondary)),
+              onTap: () => showManageCategoriesSheet(context),
             ),
             const Divider(height: 1),
             _SettingsRow(
@@ -125,6 +130,9 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ],
         ),
+        const SizedBox(height: 22),
+        const SectionLabel('Security'),
+        const _SecuritySettings(),
         const SizedBox(height: 22),
         const SectionLabel('Account'),
         _SettingsCard(
@@ -239,6 +247,63 @@ class _StorageLocationRow extends ConsumerWidget {
   }
 }
 
+class _SecuritySettings extends ConsumerWidget {
+  const _SecuritySettings();
+
+  Future<void> _enable(BuildContext context, WidgetRef ref) async {
+    final didSetPin = await showPinSetupSheet(context);
+    if (didSetPin) ref.invalidate(appLockEnabledProvider);
+  }
+
+  Future<void> _disable(WidgetRef ref) async {
+    await ref.read(appLockServiceProvider).disable();
+    ref.invalidate(appLockEnabledProvider);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(appLockEnabledProvider).valueOrNull ?? false;
+
+    return _SettingsCard(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('App Lock', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Require a PIN or biometric to open Sift',
+                      style: TextStyle(fontSize: 12, color: SiftColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: enabled,
+                activeTrackColor: SiftColors.accent,
+                onChanged: (turnOn) => turnOn ? _enable(context, ref) : _disable(ref),
+              ),
+            ],
+          ),
+        ),
+        if (enabled) ...[
+          const Divider(height: 1),
+          _SettingsRow(
+            title: 'Change PIN',
+            trailing: const SizedBox.shrink(),
+            onTap: () => showPinSetupSheet(context),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _SettingsCard extends StatelessWidget {
   const _SettingsCard({required this.children});
   final List<Widget> children;
@@ -258,14 +323,15 @@ class _SettingsCard extends StatelessWidget {
 }
 
 class _SettingsRow extends StatelessWidget {
-  const _SettingsRow({required this.title, this.subtitle, required this.trailing});
+  const _SettingsRow({required this.title, this.subtitle, required this.trailing, this.onTap});
   final String title;
   final String? subtitle;
   final Widget trailing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final row = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
       child: Row(
         children: [
@@ -282,8 +348,13 @@ class _SettingsRow extends StatelessWidget {
             ),
           ),
           trailing,
+          if (onTap != null) ...[
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right, size: 18, color: SiftColors.textMuted),
+          ],
         ],
       ),
     );
+    return onTap == null ? row : InkWell(onTap: onTap, child: row);
   }
 }

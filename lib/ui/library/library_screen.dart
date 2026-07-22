@@ -6,6 +6,7 @@ import '../../data/models/document.dart';
 import '../../providers/data_providers.dart';
 import '../../providers/document_actions.dart';
 import '../../providers/library_controller.dart';
+import '../category/category_actions.dart';
 import '../document_detail/document_detail_sheet.dart';
 import '../move/move_to_sheet.dart';
 import '../theme.dart';
@@ -39,7 +40,13 @@ class LibraryScreen extends ConsumerWidget {
 
         return Column(
           children: [
-            if (!aiOnly) _CategoryChips(categories: categories, uiState: uiState, controller: controller),
+            if (!aiOnly)
+              _CategoryChips(
+                categories: categories,
+                docs: docs,
+                uiState: uiState,
+                controller: controller,
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               child: Row(
@@ -141,14 +148,27 @@ class _ViewToggleButton extends StatelessWidget {
   }
 }
 
-class _CategoryChips extends StatelessWidget {
-  const _CategoryChips({required this.categories, required this.uiState, required this.controller});
+class _CategoryChips extends ConsumerWidget {
+  const _CategoryChips({
+    required this.categories,
+    required this.docs,
+    required this.uiState,
+    required this.controller,
+  });
   final List<Category> categories;
+  final List<Document> docs;
   final LibraryUiState uiState;
   final LibraryController controller;
 
+  Future<void> _deleteCategory(BuildContext context, WidgetRef ref, Category cat) async {
+    final deleted = await deleteCategoryWithConfirm(context, ref, category: cat, allDocuments: docs);
+    if (deleted && uiState.activeCategoryId == cat.id) {
+      controller.selectAllDocuments();
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       height: 44,
       child: ListView(
@@ -168,6 +188,7 @@ class _CategoryChips extends StatelessWidget {
                 dotHue: c.hue,
                 selected: uiState.activeCategoryId == c.id,
                 onTap: () => controller.selectCategory(c.id),
+                onLongPress: () => _deleteCategory(context, ref, c),
               ),
             ),
         ],
@@ -177,16 +198,24 @@ class _CategoryChips extends StatelessWidget {
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.selected, required this.onTap, this.dotHue});
+  const _Chip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.dotHue,
+    this.onLongPress,
+  });
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final double? dotHue;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),

@@ -1,5 +1,6 @@
 package com.sift.sift
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity()
+// local_auth (biometric App Lock) requires a FragmentActivity host.
+class MainActivity : FlutterFragmentActivity()

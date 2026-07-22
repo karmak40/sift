@@ -61,10 +61,15 @@ lib/
     web_file_storage_service.dart  — DB-blob impl (Web, which has no filesystem)
     storage_location_service.dart  — persists the Windows "custom files folder" setting
     seed_data.dart              — creates default categories on first run
-  services/ai/
-    ai_summary_service.dart          — interface: summarize(document) -> AiSummary
-    disabled_ai_summary_service.dart — default impl: always refuses (AI is off)
-    stub_http_ai_summary_service.dart — real HTTP impl, written but not wired up
+  services/
+    ai/
+      ai_summary_service.dart          — interface: summarize(document) -> AiSummary
+      disabled_ai_summary_service.dart — default impl: always refuses (AI is off)
+      stub_http_ai_summary_service.dart — real HTTP impl, written but not wired up
+    security/
+      app_lock_service.dart      — PIN set/verify/disable (salted hash, never plain text)
+      pin_storage.dart + prefs_pin_storage.dart — where the PIN hash actually gets stored
+      biometric_service.dart     — wraps local_auth (Face ID/Touch ID/Windows Hello)
   providers/
     core_providers.dart        — wires up DB, repositories, file storage, AI service
     data_providers.dart        — streams of documents/categories for the UI
@@ -72,14 +77,16 @@ lib/
     app_init_provider.dart     — runs seed_data.dart once at startup
     storage_location_controller.dart — current files-folder path + change/reset actions
     document_actions.dart      — deleteDocuments(): removes a document's DB row + its file together
+    app_lock_providers.dart    — App Lock enabled state + the ephemeral "unlocked this session" flag
   ui/
     home/home_shell.dart       — the app shell: top bar, search box, bottom nav
     library/library_screen.dart — the main document grid/list + category chips
     document_detail/           — the "tap a document" bottom sheet (open/delete live here)
     upload/                    — the "add a document" bottom sheet
-    category/                  — the "new category" bottom sheet
+    category/                  — new/manage/delete category sheets
     move/                      — the "move N documents to…" bottom sheet
     settings/settings_screen.dart
+    lock/                      — LockScreen, AppLockGate, the PIN setup sheet
     widgets/                   — small shared pieces (category dot, doc icon, AI badge, confirm_dialog…)
     theme.dart                 — colors, fonts, the OKLCH-hue-to-Color helper
 ```
@@ -370,7 +377,67 @@ separate on/off logic to update.
 
 ---
 
-## 9. The UI layer
+## 9. App Lock (PIN + biometric)
+
+Off by default — a single "App Lock" toggle in Settings > Security is the
+only thing that turns it on, per how this was asked for.
+
+- **`AppLockService`** (`lib/services/security/app_lock_service.dart`)
+  handles the PIN: `setPin()` generates a random salt, stores a salted
+  SHA-256 hash (never the plain PIN) plus an "enabled" flag, and
+  `verifyPin()` checks a guess against it. `disable()` wipes all three
+  values, so re-enabling later always starts from a fresh PIN.
+- It stores through a small `PinStorage` interface
+  (`lib/services/security/pin_storage.dart`) rather than talking to a
+  specific storage API directly — today there's exactly one implementation,
+  **`PrefsPinStorage`** (`shared_preferences`-backed), used on every
+  platform. The "obviously more correct" choice would have been
+  `flutter_secure_storage` (real Android Keystore/iOS Keychain), but its
+  Windows plugin requires a Visual Studio component (ATL) that isn't part
+  of a default install, and merely depending on the package means CMake
+  tries to compile it for Windows regardless of whether Dart code calls
+  into it — so it can't be a dependency here at all without either
+  installing that component or hitting a build failure on every Windows
+  build. Given the PIN is a hash guarding a personal document vault whose
+  files are already unencrypted on disk (not a banking credential),
+  `shared_preferences` is the pragmatic trade — see the doc comment on
+  `PrefsPinStorage` for the full reasoning. If hardware-backed storage
+  matters later, add a `SecurePinStorage` implementation of `PinStorage`
+  and pick between them per platform in `app_lock_providers.dart`.
+- **`BiometricService`** (`lib/services/security/biometric_service.dart`)
+  wraps the `local_auth` package (Face ID/Touch ID, Android biometric,
+  Windows Hello) and never throws — "not available/not enrolled/cancelled"
+  all just come back as `false`, so the caller always has a PIN fallback
+  rather than a platform exception to handle.
+- **The lock screen itself** (`lib/ui/lock/lock_screen.dart`) tries
+  biometric automatically as soon as it's shown (if the device supports
+  it), with PIN entry as the fallback / explicit alternative.
+- **`AppLockGate`** (`lib/ui/lock/app_lock_gate.dart`) wraps `HomeShell` in
+  `main.dart` and is what actually makes this a *lock* rather than a
+  one-time login screen: it's a `WidgetsBindingObserver` that resets the
+  ephemeral `isUnlockedProvider` back to `false` whenever the app is
+  backgrounded (`AppLifecycleState.paused`/`hidden` — deliberately *not*
+  `inactive`, which also fires on a transient focus loss like alt-tabbing
+  on desktop and would be annoying to re-lock on). Without this reset, App
+  Lock would only ever protect a cold start.
+- Turning App Lock on always goes through **`pin_setup_sheet.dart`** (enter
+  PIN, confirm PIN) — this is also reused as "Change PIN" in Settings, and
+  it's what `setPin()` gets called from. Turning it off doesn't require
+  re-entering the PIN: Settings itself is only reachable after the gate
+  already let you in, so there's nothing extra to verify.
+
+**Platform setup this needed**, beyond the Dart code: Android's
+`MainActivity` had to change from `FlutterActivity` to
+`FlutterFragmentActivity` (a hard `local_auth` requirement — biometric
+prompts need a fragment host), `styles.xml`'s `LaunchTheme` parent had to
+become `Theme.AppCompat.DayNight` (prevents a crash on Android 8 and
+below when the biometric dialog theme resolves), and iOS's `Info.plist`
+needed an `NSFaceIDUsageDescription` entry. None of this is optional
+boilerplate to clean up later — `local_auth` won't work without it.
+
+---
+
+## 10. The UI layer
 
 **Navigation** is a single bottom nav bar with three tabs (Library / AI /
 Settings), tracked as UI state in `LibraryController` (`MobileTab` enum),
@@ -395,7 +462,7 @@ function (`hueColor` / `hueColorAlpha`) to revisit.
 
 ---
 
-## 10. How to add a common kind of feature
+## 11. How to add a common kind of feature
 
 **Add a new field to Document** (e.g. a "starred" flag):
 1. Add the column to the `Documents` table in `database.dart`, bump
@@ -423,7 +490,7 @@ from repositories via `ref.read(...RepositoryProvider)`, don't reach into
 
 ---
 
-## 11. Running and testing
+## 12. Running and testing
 
 ```bash
 flutter pub get
