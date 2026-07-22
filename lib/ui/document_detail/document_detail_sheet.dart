@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/category.dart';
 import '../../data/models/document.dart';
 import '../../providers/core_providers.dart';
+import '../../providers/document_actions.dart';
 import '../../services/ai/ai_summary_service.dart';
 import '../theme.dart';
 import '../widgets/ai_toggle_row.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/doc_icon_tile.dart';
 
 Future<void> showDocumentDetailSheet(
@@ -56,6 +58,17 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
     if (message != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
+  }
+
+  Future<void> _delete() async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Delete "${_doc.name}"?',
+      message: 'This removes the document and its file. This can\'t be undone.',
+    );
+    if (!confirmed) return;
+    await deleteDocumentsWithRef(ref, [_doc]);
+    if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _generate() async {
@@ -136,6 +149,11 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                           ),
                         ],
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete_outline, color: SiftColors.danger),
+                      tooltip: 'Delete document',
+                      onPressed: _delete,
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),

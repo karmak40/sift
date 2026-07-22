@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/category.dart';
 import '../../data/models/document.dart';
 import '../../providers/data_providers.dart';
+import '../../providers/document_actions.dart';
 import '../../providers/library_controller.dart';
 import '../document_detail/document_detail_sheet.dart';
 import '../move/move_to_sheet.dart';
 import '../theme.dart';
 import '../widgets/ai_badge.dart';
 import '../widgets/category_dot.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/doc_icon_tile.dart';
 
 /// Shared library grid/list. [aiOnly] renders the "AI" tab, which filters to
@@ -341,7 +343,7 @@ class _DocGrid extends StatelessWidget {
   }
 }
 
-class _DocList extends StatelessWidget {
+class _DocList extends ConsumerWidget {
   const _DocList({
     required this.docs,
     required this.catById,
@@ -356,8 +358,21 @@ class _DocList extends StatelessWidget {
   final LibraryController controller;
   final List<Category> categories;
 
+  Future<void> _deleteSelected(BuildContext context, WidgetRef ref) async {
+    final selected = docs.where((d) => uiState.selectedIds.contains(d.id)).toList();
+    if (selected.isEmpty) return;
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Delete ${selected.length} ${selected.length == 1 ? 'document' : 'documents'}?',
+      message: 'This removes the selected files. This can\'t be undone.',
+    );
+    if (!confirmed) return;
+    await deleteDocumentsWithRef(ref, selected);
+    controller.clearSelection();
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final hasSelection = uiState.selectedIds.isNotEmpty;
     return Stack(
       children: [
@@ -426,6 +441,11 @@ class _DocList extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.drive_file_move_outline, size: 16),
                     label: const Text('Move to…'),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _deleteSelected(context, ref),
+                    icon: Icon(Icons.delete_outline, size: 16, color: SiftColors.danger),
+                    label: Text('Delete', style: TextStyle(color: SiftColors.danger)),
                   ),
                   const Spacer(),
                   TextButton(onPressed: controller.clearSelection, child: const Text('Clear')),

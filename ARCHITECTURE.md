@@ -71,15 +71,16 @@ lib/
     library_controller.dart    — UI state: search/sort/filter/selection/tabs
     app_init_provider.dart     — runs seed_data.dart once at startup
     storage_location_controller.dart — current files-folder path + change/reset actions
+    document_actions.dart      — deleteDocuments(): removes a document's DB row + its file together
   ui/
     home/home_shell.dart       — the app shell: top bar, search box, bottom nav
     library/library_screen.dart — the main document grid/list + category chips
-    document_detail/           — the "tap a document" bottom sheet
+    document_detail/           — the "tap a document" bottom sheet (open/delete live here)
     upload/                    — the "add a document" bottom sheet
     category/                  — the "new category" bottom sheet
     move/                      — the "move N documents to…" bottom sheet
     settings/settings_screen.dart
-    widgets/                   — small shared pieces (category dot, doc icon, AI badge…)
+    widgets/                   — small shared pieces (category dot, doc icon, AI badge, confirm_dialog…)
     theme.dart                 — colors, fonts, the OKLCH-hue-to-Color helper
 ```
 
@@ -192,6 +193,47 @@ filesystem at all.
 If this needs to extend to other desktop targets later (macOS, Linux),
 the only change needed is loosening the `Platform.isWindows` check — none
 of the underlying storage/migration logic is Windows-specific.
+
+### Opening a document
+
+`FileStorageService.openExternally(storageKey)` hands the file to the OS's
+default app for its type. On Android/iOS/desktop this resolves the real
+path and calls the `open_filex` package — on Windows that's literally just
+`cmd /c start "" <path>` under the hood, no native plugin involved. On Web
+there's no real file to hand off to another app, so it just returns an
+explanatory message instead of pretending to succeed. The document detail
+sheet's "Open file" button calls this and shows the returned message (if
+any) in a snackbar.
+
+### Deleting a document
+
+Deleting has to do two things — remove the DB row *and* remove the
+underlying file/blob — and `DocumentRepository.delete()` only does the
+first half. `lib/providers/document_actions.dart`'s `deleteDocuments()` is
+the composed operation every delete UI action goes through instead:
+
+```dart
+Future<void> deleteDocuments({
+  required List<Document> documents,
+  required DocumentRepository documentRepository,
+  required FileStorageService fileStorageService,
+}) async {
+  for (final doc in documents) {
+    if (doc.storageKey.isNotEmpty) await fileStorageService.delete(doc.storageKey);
+  }
+  await documentRepository.delete(documents.map((d) => d.id).toList());
+}
+```
+
+It's written to take the repository/service as parameters rather than
+reading providers itself, specifically so it's unit-testable with a fake
+`DocumentRepository` (see `test/document_actions_test.dart`) without
+needing a real database. `deleteDocumentsWithRef(ref, documents)` is the
+thin wrapper UI code actually calls. Both the document detail sheet (single
+document, via a trash icon next to the close button) and the library
+list view's bulk-selection bar (multiple documents, via "Delete" next to
+"Move to…") go through a confirmation dialog first
+(`lib/ui/widgets/confirm_dialog.dart`) before calling it.
 
 ---
 

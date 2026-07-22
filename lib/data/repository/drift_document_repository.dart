@@ -79,4 +79,9 @@ class DriftDocumentRepository implements DocumentRepository {
       DocumentsCompanion(categoryId: Value(categoryId)),
     );
   }
+
+  @override
+  Future<void> delete(List<int> ids) {
+    return (_db.delete(_db.documents)..where((d) => d.id.isIn(ids))).go();
+  }
 }

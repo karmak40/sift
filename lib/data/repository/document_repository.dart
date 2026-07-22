@@ -22,4 +22,10 @@ abstract class DocumentRepository {
   Future<void> updateAiSummary(int id, AiSummary? ai);
 
   Future<void> moveToCategory(List<int> ids, String categoryId);
+
+  /// Deletes document rows only. Callers should go through
+  /// `document_actions.dart`'s `deleteDocuments`/`deleteDocumentsWithRef`
+  /// instead of calling this directly — it also cleans up the underlying
+  /// stored file bytes, which this method alone does not do.
+  Future<void> delete(List<int> ids);
 }
