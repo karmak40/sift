@@ -70,25 +70,30 @@ lib/
       app_lock_service.dart      — PIN set/verify/disable (salted hash, never plain text)
       pin_storage.dart + prefs_pin_storage.dart — where the PIN hash actually gets stored
       biometric_service.dart     — wraps local_auth (Face ID/Touch ID/Windows Hello)
+    reminders/
+      reminder_service.dart      — schedules/cancels the expiration reminder notification
   providers/
-    core_providers.dart        — wires up DB, repositories, file storage, AI service
+    core_providers.dart        — wires up DB, repositories, file storage, AI service, reminders
     data_providers.dart        — streams of documents/categories for the UI
     library_controller.dart    — UI state: search/sort/filter/selection/tabs
     app_init_provider.dart     — runs seed_data.dart once at startup
     storage_location_controller.dart — current files-folder path + change/reset actions
-    document_actions.dart      — deleteDocuments(): removes a document's DB row + its file together
+    document_actions.dart      — deleteDocuments(): removes a document's DB row, file, and reminder together
     app_lock_providers.dart    — App Lock enabled state + the ephemeral "unlocked this session" flag
   ui/
     home/home_shell.dart       — the app shell: top bar, search box, bottom nav
     library/library_screen.dart — the main document grid/list + category chips
-    document_detail/           — the "tap a document" bottom sheet (open/delete live here)
+    document_detail/           — the "tap a document" bottom sheet (open/delete/expiration live here)
     upload/                    — the "add a document" bottom sheet
     category/                  — new/manage/delete category sheets
     move/                      — the "move N documents to…" bottom sheet
     settings/settings_screen.dart
     lock/                      — LockScreen, AppLockGate, the PIN setup sheet
-    widgets/                   — small shared pieces (category dot, doc icon, AI badge, confirm_dialog…)
+    widgets/                   — small shared pieces (category dot, doc icon, AI/expiring badge, confirm_dialog…)
     theme.dart                 — colors, fonts, the OKLCH-hue-to-Color helper
+local_packages/
+  flutter_local_notifications_windows_stub/ — no-op override so Windows builds without the
+                                              real (ATL-dependent) plugin — see §10
 ```
 
 If you're looking for where something lives, this is usually enough to
@@ -117,10 +122,13 @@ class Document {
   DateTime addedAt;
   String storageKey;        // opaque key — see §4, FileStorageService
   AiSummary? ai;             // null until a summary has been generated
+  DateTime? expiresAt;       // user-set — see §10, Expiration reminders
+  int? reminderDaysBefore;   // defaults to 30 whenever expiresAt is set
 }
 ```
 
-`AiSummary` is just `{ String summary; List<String> points; }`.
+`AiSummary` is `{ String summary; List<String> points; DateTime? suggestedExpiresAt }`
+— that last field is inert plumbing for later, see §10.
 
 These model classes (`lib/data/models/`) are what the UI works with. They
 are **not** the same classes Drift generates from the table definitions —
@@ -437,7 +445,65 @@ boilerplate to clean up later — `local_auth` won't work without it.
 
 ---
 
-## 10. The UI layer
+## 10. Expiration reminders
+
+`Document.expiresAt` + `Document.reminderDaysBefore` (default 30) are set
+manually by the user — passports, insurance policies, and warranties all
+have dates that matter, but Sift has no way to read that date out of the
+file itself. Real AI document-reading (OCR + PDF text extraction + an
+actual API key) is a much bigger, separate piece of work than this
+feature — see `AiSummary.suggestedExpiresAt` below for how the door is
+left open for it without blocking on it now.
+
+- `Document.reminderDate` (a getter, `lib/data/models/document.dart`) is
+  `expiresAt` minus `reminderDaysBefore`, computed via calendar-component
+  subtraction (`DateTime(y, m, d - n)`) rather than `Duration(days: n)` —
+  the latter crosses a daylight-saving transition by shifting the
+  wall-clock hour instead of the calendar date, which is wrong for a
+  reminder like this (see `test/document_expiration_test.dart` for the
+  regression coverage). `Document.isExpiringSoon(now)` is what the library
+  grid/list badges (`ExpiringBadge`) check.
+- **Real, OS-delivered notifications only exist on Android/iOS.** Windows
+  builds against a no-op stub instead of the real
+  `flutter_local_notifications_windows` plugin — its native code needs the
+  same missing Visual Studio ATL component that blocked `flutter_secure_storage`
+  for App Lock, except this time there's no shared-preferences-style
+  fallback (toast notifications genuinely need that Windows API), so the
+  decision made here was: real push reminders on mobile, in-app "expiring
+  soon" badges only on Windows/Web. See
+  `local_packages/flutter_local_notifications_windows_stub/pubspec.yaml`
+  for exactly what that stub has to fake to satisfy the main package's own
+  Dart source (a few Windows-only types/methods it references but never
+  constructs) — it's more involved than the storage-location swap because
+  `flutter_local_notifications_windows` is an FFI plugin, not a
+  method-channel one.
+- `ReminderService` (`lib/services/reminders/reminder_service.dart`) wraps
+  `flutter_local_notifications`. `supportsRealNotifications` gates every
+  method to a no-op off Android/iOS. `scheduleReminder()`/`cancelReminder()`
+  are called from the document detail sheet's Expiration section whenever
+  the user sets/changes/clears a date, and from `deleteDocuments()` so a
+  deleted document doesn't leave a stale notification behind.
+- Scheduling uses `AndroidScheduleMode.inexactAllowWhileIdle` deliberately
+  — exact alarms need the user to separately grant Android's
+  `SCHEDULE_EXACT_ALARM` permission, real friction for a reminder that's
+  fine being off by a few minutes.
+- Verified with `integration_test/reminder_service_test.dart` on a real
+  Android emulator, including the Android 13+ runtime notification
+  permission prompt actually appearing and being granted — not just a
+  build-time check.
+
+**Ready for later, not built yet:** `AiSummary.suggestedExpiresAt`
+(`lib/data/models/ai_summary.dart`) and `StubHttpAiSummaryService`'s
+parsing of a `suggestedExpiresAt` response field exist so that once a real
+AI backend is wired up (see §8), it can suggest a date read out of the
+document — the user would still confirm/apply it themselves, never have
+it silently overwrite `Document.expiresAt`. Since `DisabledAiSummaryService`
+never returns an `AiSummary` at all today, this field is always null in
+practice; it's pure plumbing until AI is turned on for real.
+
+---
+
+## 11. The UI layer
 
 **Navigation** is a single bottom nav bar with three tabs (Library / AI /
 Settings), tracked as UI state in `LibraryController` (`MobileTab` enum),
@@ -462,7 +528,7 @@ function (`hueColor` / `hueColorAlpha`) to revisit.
 
 ---
 
-## 11. How to add a common kind of feature
+## 12. How to add a common kind of feature
 
 **Add a new field to Document** (e.g. a "starred" flag):
 1. Add the column to the `Documents` table in `database.dart`, bump
@@ -490,7 +556,7 @@ from repositories via `ref.read(...RepositoryProvider)`, don't reach into
 
 ---
 
-## 12. Running and testing
+## 13. Running and testing
 
 ```bash
 flutter pub get

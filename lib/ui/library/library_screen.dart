@@ -14,6 +14,7 @@ import '../widgets/ai_badge.dart';
 import '../widgets/category_dot.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/doc_icon_tile.dart';
+import '../widgets/expiring_badge.dart';
 
 /// Shared library grid/list. [aiOnly] renders the "AI" tab, which filters to
 /// documents that already have a summary.
@@ -361,6 +362,7 @@ class _DocGrid extends StatelessWidget {
                         ),
                       ),
                     if (doc.hasAi) const AiBadge(),
+                    if (doc.isExpiringSoon(DateTime.now())) const ExpiringBadge(),
                   ],
                 ),
               ],
@@ -441,7 +443,18 @@ class _DocList extends ConsumerWidget {
                     Text(_shortDate(doc.addedAt), style: monoStyle(fontSize: 10.5)),
                   ],
                 ),
-                trailing: doc.hasAi ? const AiBadge(compact: true) : null,
+                trailing: (doc.hasAi || doc.isExpiringSoon(DateTime.now()))
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (doc.isExpiringSoon(DateTime.now())) ...[
+                            const ExpiringBadge(compact: true),
+                            const SizedBox(width: 4),
+                          ],
+                          if (doc.hasAi) const AiBadge(compact: true),
+                        ],
+                      )
+                    : null,
               ),
             );
           },

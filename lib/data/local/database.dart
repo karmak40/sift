@@ -23,6 +23,8 @@ class Documents extends Table {
   DateTimeColumn get addedAt => dateTime()();
   TextColumn get storageKey => text()();
   TextColumn get aiSummaryJson => text().nullable()();
+  DateTimeColumn get expiresAt => dateTime().nullable()();
+  IntColumn get reminderDaysBefore => integer().nullable()();
 }
 
 /// BLOB-backed file storage used only on Web, where there is no real
@@ -42,7 +44,22 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      // v1 -> v2: added expiration-reminder tracking (expiresAt/
+      // reminderDaysBefore) to Documents. Existing rows just get NULL for
+      // both — "not tracked" is the correct default for documents that
+      // predate this feature.
+      if (from < 2) {
+        await m.addColumn(documents, documents.expiresAt);
+        await m.addColumn(documents, documents.reminderDaysBefore);
+      }
+    },
+  );
 }
 
 QueryExecutor _openConnection() {

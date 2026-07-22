@@ -35,6 +35,8 @@ class SiftColors {
   static const Color textSecondary = Color(0xFF5B647A);
   static const Color textMuted = Color(0xFF9AA4B2);
   static const Color danger = Color(0xFFC0483F);
+  static const Color warning = Color(0xFFB4750F);
+  static const Color warningSoft = Color(0xFFFBF0DD);
 
   static const Map<String, double> docTypeHue = {
     'PDF': 30,

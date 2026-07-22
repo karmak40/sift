@@ -1,0 +1,28 @@
+name: flutter_local_notifications_windows
+description: >
+  No-op stand-in for the real flutter_local_notifications_windows plugin.
+  Sift intentionally doesn't ship real OS notifications on Windows (see
+  ARCHITECTURE.md, "Expiration reminders" section) — the real plugin is an
+  FFI plugin that needs the ATL Visual Studio component, which this project
+  otherwise has no reason to require. This package satisfies the
+  `default_package` reference from `flutter_local_notifications`'s pubspec
+  with a pure-Dart, no-native-build implementation instead.
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: ^3.10.4
+  flutter: ">=3.38.1"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_local_notifications_platform_interface: ^12.0.1
+  timezone: ^0.11.1
+
+flutter:
+  plugin:
+    implements: flutter_local_notifications
+    platforms:
+      windows:
+        dartPluginClass: NoOpFlutterLocalNotificationsWindows

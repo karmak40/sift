@@ -61,6 +61,8 @@ class Document {
     required this.addedAt,
     required this.storageKey,
     this.ai,
+    this.expiresAt,
+    this.reminderDaysBefore,
   });
 
   final int id;
@@ -72,7 +74,40 @@ class Document {
   final String storageKey;
   final AiSummary? ai;
 
+  /// When this document expires/needs renewing (passport, insurance policy,
+  /// warranty, ...) — set manually by the user, null means "not tracked".
+  final DateTime? expiresAt;
+
+  /// How many days before [expiresAt] to remind the user. Only meaningful
+  /// when [expiresAt] is set; defaults to 30 whenever a caller sets an
+  /// expiration date without specifying one.
+  final int? reminderDaysBefore;
+
   bool get hasAi => ai != null;
+
+  bool get hasExpiration => expiresAt != null;
+
+  /// The actual date a reminder notification should fire on.
+  ///
+  /// Computed via calendar-component subtraction (`DateTime(y, m, d - n)`),
+  /// not `Duration(days: n)` — subtracting a fixed-length Duration across a
+  /// daylight-saving transition shifts the wall-clock hour (e.g. lands on
+  /// 23:00 the day before instead of midnight), which is wrong for a
+  /// calendar-date reminder like this.
+  DateTime? get reminderDate {
+    final expires = expiresAt;
+    if (expires == null) return null;
+    final days = reminderDaysBefore ?? 30;
+    return DateTime(expires.year, expires.month, expires.day - days);
+  }
+
+  /// True once we're inside the reminder window (or past the expiration
+  /// date entirely) — drives the "expiring soon" badge in the library.
+  bool isExpiringSoon(DateTime now) {
+    final reminder = reminderDate;
+    if (reminder == null) return false;
+    return !now.isBefore(reminder);
+  }
 
   Document copyWith({
     int? id,
@@ -84,6 +119,9 @@ class Document {
     String? storageKey,
     AiSummary? ai,
     bool clearAi = false,
+    DateTime? expiresAt,
+    bool clearExpiresAt = false,
+    int? reminderDaysBefore,
   }) {
     return Document(
       id: id ?? this.id,
@@ -94,6 +132,8 @@ class Document {
       addedAt: addedAt ?? this.addedAt,
       storageKey: storageKey ?? this.storageKey,
       ai: clearAi ? null : (ai ?? this.ai),
+      expiresAt: clearExpiresAt ? null : (expiresAt ?? this.expiresAt),
+      reminderDaysBefore: clearExpiresAt ? null : (reminderDaysBefore ?? this.reminderDaysBefore),
     );
   }
 

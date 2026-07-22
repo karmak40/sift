@@ -12,6 +12,7 @@ import 'package:sift/data/models/document.dart';
 import 'package:sift/data/repository/document_repository.dart';
 import 'package:sift/data/storage_location_service.dart';
 import 'package:sift/providers/document_actions.dart';
+import 'package:sift/services/reminders/reminder_service.dart';
 
 class _FakePathProvider extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
@@ -50,13 +51,31 @@ class _FakeDocumentRepository implements DocumentRepository {
       throw UnimplementedError();
 
   @override
+  Future<void> setExpiration(int id, {DateTime? expiresAt, int? reminderDaysBefore}) =>
+      throw UnimplementedError();
+
+  @override
   Stream<List<Document>> watchAll() => throw UnimplementedError();
+}
+
+/// `ReminderService` already no-ops safely off Android/iOS (see
+/// `supportsRealNotifications`), which this test host is — so `super.call()`
+/// is safe here too, this just also records what was asked for.
+class _RecordingReminderService extends ReminderService {
+  final List<int> cancelledIds = [];
+
+  @override
+  Future<void> cancelReminder(int documentId) async {
+    cancelledIds.add(documentId);
+    await super.cancelReminder(documentId);
+  }
 }
 
 void main() {
   late Directory tempDir;
   late IoFileStorageService fileStorage;
   late _FakeDocumentRepository repo;
+  late _RecordingReminderService reminders;
 
   setUp(() {
     tempDir = Directory.systemTemp.createTempSync('sift_delete_test_');
@@ -64,11 +83,16 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     fileStorage = IoFileStorageService(StorageLocationService());
     repo = _FakeDocumentRepository();
+    reminders = _RecordingReminderService();
   });
 
   tearDown(() => tempDir.deleteSync(recursive: true));
 
-  Document docWith({required int id, required String storageKey}) => Document(
+  Document docWith({
+    required int id,
+    required String storageKey,
+    DateTime? expiresAt,
+  }) => Document(
     id: id,
     name: 'doc-$id.pdf',
     type: DocType.pdf,
@@ -76,6 +100,7 @@ void main() {
     sizeBytes: 10,
     addedAt: DateTime(2026, 1, 1),
     storageKey: storageKey,
+    expiresAt: expiresAt,
   );
 
   test('deletes the stored file and the repository row', () async {
@@ -86,6 +111,7 @@ void main() {
       documents: [doc],
       documentRepository: repo,
       fileStorageService: fileStorage,
+      reminderService: reminders,
     );
 
     expect(repo.deletedIds, [1]);
@@ -101,7 +127,12 @@ void main() {
     final key2 = await fileStorage.store('b.pdf', Uint8List.fromList([2]));
     final docs = [docWith(id: 1, storageKey: key1), docWith(id: 2, storageKey: key2)];
 
-    await deleteDocuments(documents: docs, documentRepository: repo, fileStorageService: fileStorage);
+    await deleteDocuments(
+      documents: docs,
+      documentRepository: repo,
+      fileStorageService: fileStorage,
+      reminderService: reminders,
+    );
 
     expect(repo.deletedIds, [1, 2]);
     expect(await fileStorage.read(key1), isNull);
@@ -111,8 +142,39 @@ void main() {
   test('a document with no attached file (empty storageKey) is still removed', () async {
     final doc = docWith(id: 7, storageKey: '');
 
-    await deleteDocuments(documents: [doc], documentRepository: repo, fileStorageService: fileStorage);
+    await deleteDocuments(
+      documents: [doc],
+      documentRepository: repo,
+      fileStorageService: fileStorage,
+      reminderService: reminders,
+    );
 
     expect(repo.deletedIds, [7]);
+  });
+
+  test('cancels the reminder for a document that had an expiration set', () async {
+    final doc = docWith(id: 3, storageKey: '', expiresAt: DateTime(2027, 1, 1));
+
+    await deleteDocuments(
+      documents: [doc],
+      documentRepository: repo,
+      fileStorageService: fileStorage,
+      reminderService: reminders,
+    );
+
+    expect(reminders.cancelledIds, [3]);
+  });
+
+  test('does not bother cancelling a reminder for a document with no expiration', () async {
+    final doc = docWith(id: 4, storageKey: '');
+
+    await deleteDocuments(
+      documents: [doc],
+      documentRepository: repo,
+      fileStorageService: fileStorage,
+      reminderService: reminders,
+    );
+
+    expect(reminders.cancelledIds, isEmpty);
   });
 }

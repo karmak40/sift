@@ -26,6 +26,8 @@ class DriftDocumentRepository implements DocumentRepository {
           : AiSummary.fromJson(
               jsonDecode(row.aiSummaryJson!) as Map<String, Object?>,
             ),
+      expiresAt: row.expiresAt,
+      reminderDaysBefore: row.reminderDaysBefore,
     );
   }
 
@@ -83,5 +85,15 @@ class DriftDocumentRepository implements DocumentRepository {
   @override
   Future<void> delete(List<int> ids) {
     return (_db.delete(_db.documents)..where((d) => d.id.isIn(ids))).go();
+  }
+
+  @override
+  Future<void> setExpiration(int id, {DateTime? expiresAt, int? reminderDaysBefore}) {
+    return (_db.update(_db.documents)..where((d) => d.id.equals(id))).write(
+      DocumentsCompanion(
+        expiresAt: Value(expiresAt),
+        reminderDaysBefore: Value(expiresAt == null ? null : reminderDaysBefore),
+      ),
+    );
   }
 }

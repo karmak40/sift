@@ -13,6 +13,7 @@ import '../data/storage_location_service.dart';
 import '../data/web_file_storage_service.dart';
 import '../services/ai/ai_summary_service.dart';
 import '../services/ai/disabled_ai_summary_service.dart';
+import '../services/reminders/reminder_service.dart';
 
 /// Storage backend selection. Only `local` is wired up today; `remote` is
 /// reserved for a future `RemoteDocumentRepository`/`RemoteCategoryRepository`
@@ -77,3 +78,5 @@ final aiSummaryServiceProvider = Provider<AiSummaryService>((ref) {
   // real summarization backend exists.
   return const DisabledAiSummaryService();
 });
+
+final reminderServiceProvider = Provider<ReminderService>((ref) => ReminderService());

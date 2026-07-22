@@ -32,6 +32,14 @@ class StubHttpAiSummaryService implements AiSummaryService {
     return AiSummary(
       summary: data['summary'] as String,
       points: (data['points'] as List).cast<String>(),
+      // Ready for whenever the real backend reads dates out of the
+      // document (a passport/policy's stated expiry) and reports one back
+      // — expected as an ISO-8601 string under this key. The document
+      // detail sheet only ever offers to *apply* a suggestion the user
+      // confirms; this never writes `Document.expiresAt` on its own.
+      suggestedExpiresAt: data['suggestedExpiresAt'] == null
+          ? null
+          : DateTime.tryParse(data['suggestedExpiresAt'] as String),
     );
   }
 }

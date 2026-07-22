@@ -347,6 +347,27 @@ class $DocumentsTable extends Documents
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _reminderDaysBeforeMeta =
+      const VerificationMeta('reminderDaysBefore');
+  @override
+  late final GeneratedColumn<int> reminderDaysBefore = GeneratedColumn<int>(
+    'reminder_days_before',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -357,6 +378,8 @@ class $DocumentsTable extends Documents
     addedAt,
     storageKey,
     aiSummaryJson,
+    expiresAt,
+    reminderDaysBefore,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -430,6 +453,21 @@ class $DocumentsTable extends Documents
         ),
       );
     }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    }
+    if (data.containsKey('reminder_days_before')) {
+      context.handle(
+        _reminderDaysBeforeMeta,
+        reminderDaysBefore.isAcceptableOrUnknown(
+          data['reminder_days_before']!,
+          _reminderDaysBeforeMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -471,6 +509,14 @@ class $DocumentsTable extends Documents
         DriftSqlType.string,
         data['${effectivePrefix}ai_summary_json'],
       ),
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      ),
+      reminderDaysBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reminder_days_before'],
+      ),
     );
   }
 
@@ -489,6 +535,8 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
   final DateTime addedAt;
   final String storageKey;
   final String? aiSummaryJson;
+  final DateTime? expiresAt;
+  final int? reminderDaysBefore;
   const DocumentRow({
     required this.id,
     required this.name,
@@ -498,6 +546,8 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
     required this.addedAt,
     required this.storageKey,
     this.aiSummaryJson,
+    this.expiresAt,
+    this.reminderDaysBefore,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -511,6 +561,12 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
     map['storage_key'] = Variable<String>(storageKey);
     if (!nullToAbsent || aiSummaryJson != null) {
       map['ai_summary_json'] = Variable<String>(aiSummaryJson);
+    }
+    if (!nullToAbsent || expiresAt != null) {
+      map['expires_at'] = Variable<DateTime>(expiresAt);
+    }
+    if (!nullToAbsent || reminderDaysBefore != null) {
+      map['reminder_days_before'] = Variable<int>(reminderDaysBefore);
     }
     return map;
   }
@@ -527,6 +583,12 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
       aiSummaryJson: aiSummaryJson == null && nullToAbsent
           ? const Value.absent()
           : Value(aiSummaryJson),
+      expiresAt: expiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresAt),
+      reminderDaysBefore: reminderDaysBefore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reminderDaysBefore),
     );
   }
 
@@ -544,6 +606,8 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
       addedAt: serializer.fromJson<DateTime>(json['addedAt']),
       storageKey: serializer.fromJson<String>(json['storageKey']),
       aiSummaryJson: serializer.fromJson<String?>(json['aiSummaryJson']),
+      expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
+      reminderDaysBefore: serializer.fromJson<int?>(json['reminderDaysBefore']),
     );
   }
   @override
@@ -558,6 +622,8 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
       'addedAt': serializer.toJson<DateTime>(addedAt),
       'storageKey': serializer.toJson<String>(storageKey),
       'aiSummaryJson': serializer.toJson<String?>(aiSummaryJson),
+      'expiresAt': serializer.toJson<DateTime?>(expiresAt),
+      'reminderDaysBefore': serializer.toJson<int?>(reminderDaysBefore),
     };
   }
 
@@ -570,6 +636,8 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
     DateTime? addedAt,
     String? storageKey,
     Value<String?> aiSummaryJson = const Value.absent(),
+    Value<DateTime?> expiresAt = const Value.absent(),
+    Value<int?> reminderDaysBefore = const Value.absent(),
   }) => DocumentRow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -581,6 +649,10 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
     aiSummaryJson: aiSummaryJson.present
         ? aiSummaryJson.value
         : this.aiSummaryJson,
+    expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+    reminderDaysBefore: reminderDaysBefore.present
+        ? reminderDaysBefore.value
+        : this.reminderDaysBefore,
   );
   DocumentRow copyWithCompanion(DocumentsCompanion data) {
     return DocumentRow(
@@ -598,6 +670,10 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
       aiSummaryJson: data.aiSummaryJson.present
           ? data.aiSummaryJson.value
           : this.aiSummaryJson,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      reminderDaysBefore: data.reminderDaysBefore.present
+          ? data.reminderDaysBefore.value
+          : this.reminderDaysBefore,
     );
   }
 
@@ -611,7 +687,9 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
           ..write('sizeBytes: $sizeBytes, ')
           ..write('addedAt: $addedAt, ')
           ..write('storageKey: $storageKey, ')
-          ..write('aiSummaryJson: $aiSummaryJson')
+          ..write('aiSummaryJson: $aiSummaryJson, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('reminderDaysBefore: $reminderDaysBefore')
           ..write(')'))
         .toString();
   }
@@ -626,6 +704,8 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
     addedAt,
     storageKey,
     aiSummaryJson,
+    expiresAt,
+    reminderDaysBefore,
   );
   @override
   bool operator ==(Object other) =>
@@ -638,7 +718,9 @@ class DocumentRow extends DataClass implements Insertable<DocumentRow> {
           other.sizeBytes == this.sizeBytes &&
           other.addedAt == this.addedAt &&
           other.storageKey == this.storageKey &&
-          other.aiSummaryJson == this.aiSummaryJson);
+          other.aiSummaryJson == this.aiSummaryJson &&
+          other.expiresAt == this.expiresAt &&
+          other.reminderDaysBefore == this.reminderDaysBefore);
 }
 
 class DocumentsCompanion extends UpdateCompanion<DocumentRow> {
@@ -650,6 +732,8 @@ class DocumentsCompanion extends UpdateCompanion<DocumentRow> {
   final Value<DateTime> addedAt;
   final Value<String> storageKey;
   final Value<String?> aiSummaryJson;
+  final Value<DateTime?> expiresAt;
+  final Value<int?> reminderDaysBefore;
   const DocumentsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -659,6 +743,8 @@ class DocumentsCompanion extends UpdateCompanion<DocumentRow> {
     this.addedAt = const Value.absent(),
     this.storageKey = const Value.absent(),
     this.aiSummaryJson = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.reminderDaysBefore = const Value.absent(),
   });
   DocumentsCompanion.insert({
     this.id = const Value.absent(),
@@ -669,6 +755,8 @@ class DocumentsCompanion extends UpdateCompanion<DocumentRow> {
     required DateTime addedAt,
     required String storageKey,
     this.aiSummaryJson = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.reminderDaysBefore = const Value.absent(),
   }) : name = Value(name),
        type = Value(type),
        categoryId = Value(categoryId),
@@ -684,6 +772,8 @@ class DocumentsCompanion extends UpdateCompanion<DocumentRow> {
     Expression<DateTime>? addedAt,
     Expression<String>? storageKey,
     Expression<String>? aiSummaryJson,
+    Expression<DateTime>? expiresAt,
+    Expression<int>? reminderDaysBefore,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -694,6 +784,9 @@ class DocumentsCompanion extends UpdateCompanion<DocumentRow> {
       if (addedAt != null) 'added_at': addedAt,
       if (storageKey != null) 'storage_key': storageKey,
       if (aiSummaryJson != null) 'ai_summary_json': aiSummaryJson,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (reminderDaysBefore != null)
+        'reminder_days_before': reminderDaysBefore,
     });
   }
 
@@ -706,6 +799,8 @@ class DocumentsCompanion extends UpdateCompanion<DocumentRow> {
     Value<DateTime>? addedAt,
     Value<String>? storageKey,
     Value<String?>? aiSummaryJson,
+    Value<DateTime?>? expiresAt,
+    Value<int?>? reminderDaysBefore,
   }) {
     return DocumentsCompanion(
       id: id ?? this.id,
@@ -716,6 +811,8 @@ class DocumentsCompanion extends UpdateCompanion<DocumentRow> {
       addedAt: addedAt ?? this.addedAt,
       storageKey: storageKey ?? this.storageKey,
       aiSummaryJson: aiSummaryJson ?? this.aiSummaryJson,
+      expiresAt: expiresAt ?? this.expiresAt,
+      reminderDaysBefore: reminderDaysBefore ?? this.reminderDaysBefore,
     );
   }
 
@@ -746,6 +843,12 @@ class DocumentsCompanion extends UpdateCompanion<DocumentRow> {
     if (aiSummaryJson.present) {
       map['ai_summary_json'] = Variable<String>(aiSummaryJson.value);
     }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (reminderDaysBefore.present) {
+      map['reminder_days_before'] = Variable<int>(reminderDaysBefore.value);
+    }
     return map;
   }
 
@@ -759,7 +862,9 @@ class DocumentsCompanion extends UpdateCompanion<DocumentRow> {
           ..write('sizeBytes: $sizeBytes, ')
           ..write('addedAt: $addedAt, ')
           ..write('storageKey: $storageKey, ')
-          ..write('aiSummaryJson: $aiSummaryJson')
+          ..write('aiSummaryJson: $aiSummaryJson, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('reminderDaysBefore: $reminderDaysBefore')
           ..write(')'))
         .toString();
   }
@@ -1158,6 +1263,8 @@ typedef $$DocumentsTableCreateCompanionBuilder =
       required DateTime addedAt,
       required String storageKey,
       Value<String?> aiSummaryJson,
+      Value<DateTime?> expiresAt,
+      Value<int?> reminderDaysBefore,
     });
 typedef $$DocumentsTableUpdateCompanionBuilder =
     DocumentsCompanion Function({
@@ -1169,6 +1276,8 @@ typedef $$DocumentsTableUpdateCompanionBuilder =
       Value<DateTime> addedAt,
       Value<String> storageKey,
       Value<String?> aiSummaryJson,
+      Value<DateTime?> expiresAt,
+      Value<int?> reminderDaysBefore,
     });
 
 class $$DocumentsTableFilterComposer
@@ -1217,6 +1326,16 @@ class $$DocumentsTableFilterComposer
 
   ColumnFilters<String> get aiSummaryJson => $composableBuilder(
     column: $table.aiSummaryJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reminderDaysBefore => $composableBuilder(
+    column: $table.reminderDaysBefore,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1269,6 +1388,16 @@ class $$DocumentsTableOrderingComposer
     column: $table.aiSummaryJson,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reminderDaysBefore => $composableBuilder(
+    column: $table.reminderDaysBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$DocumentsTableAnnotationComposer
@@ -1307,6 +1436,14 @@ class $$DocumentsTableAnnotationComposer
 
   GeneratedColumn<String> get aiSummaryJson => $composableBuilder(
     column: $table.aiSummaryJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<int> get reminderDaysBefore => $composableBuilder(
+    column: $table.reminderDaysBefore,
     builder: (column) => column,
   );
 }
@@ -1350,6 +1487,8 @@ class $$DocumentsTableTableManager
                 Value<DateTime> addedAt = const Value.absent(),
                 Value<String> storageKey = const Value.absent(),
                 Value<String?> aiSummaryJson = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<int?> reminderDaysBefore = const Value.absent(),
               }) => DocumentsCompanion(
                 id: id,
                 name: name,
@@ -1359,6 +1498,8 @@ class $$DocumentsTableTableManager
                 addedAt: addedAt,
                 storageKey: storageKey,
                 aiSummaryJson: aiSummaryJson,
+                expiresAt: expiresAt,
+                reminderDaysBefore: reminderDaysBefore,
               ),
           createCompanionCallback:
               ({
@@ -1370,6 +1511,8 @@ class $$DocumentsTableTableManager
                 required DateTime addedAt,
                 required String storageKey,
                 Value<String?> aiSummaryJson = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<int?> reminderDaysBefore = const Value.absent(),
               }) => DocumentsCompanion.insert(
                 id: id,
                 name: name,
@@ -1379,6 +1522,8 @@ class $$DocumentsTableTableManager
                 addedAt: addedAt,
                 storageKey: storageKey,
                 aiSummaryJson: aiSummaryJson,
+                expiresAt: expiresAt,
+                reminderDaysBefore: reminderDaysBefore,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

@@ -11,6 +11,8 @@ import '../widgets/ai_toggle_row.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/doc_icon_tile.dart';
 
+const _reminderLeadOptions = [7, 14, 30, 60, 90];
+
 Future<void> showDocumentDetailSheet(
   BuildContext context, {
   required Document document,
@@ -69,6 +71,45 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
     if (!confirmed) return;
     await deleteDocumentsWithRef(ref, [_doc]);
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _pickExpirationDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _doc.expiresAt ?? DateTime(now.year, now.month, now.day + 30),
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 50),
+    );
+    if (picked == null) return;
+    final reminderDaysBefore = _doc.reminderDaysBefore ?? 30;
+    await ref
+        .read(documentRepositoryProvider)
+        .setExpiration(_doc.id, expiresAt: picked, reminderDaysBefore: reminderDaysBefore);
+    final updated = _doc.copyWith(expiresAt: picked, reminderDaysBefore: reminderDaysBefore);
+    await ref.read(reminderServiceProvider).scheduleReminder(updated);
+    if (mounted) setState(() => _doc = updated);
+  }
+
+  Future<void> _changeReminderLead() async {
+    final choice = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _ReminderLeadSheet(),
+    );
+    if (choice == null) return;
+    await ref
+        .read(documentRepositoryProvider)
+        .setExpiration(_doc.id, expiresAt: _doc.expiresAt, reminderDaysBefore: choice);
+    final updated = _doc.copyWith(reminderDaysBefore: choice);
+    await ref.read(reminderServiceProvider).scheduleReminder(updated);
+    if (mounted) setState(() => _doc = updated);
+  }
+
+  Future<void> _clearExpiration() async {
+    await ref.read(documentRepositoryProvider).setExpiration(_doc.id);
+    await ref.read(reminderServiceProvider).cancelReminder(_doc.id);
+    if (mounted) setState(() => _doc = _doc.copyWith(clearExpiresAt: true));
   }
 
   Future<void> _generate() async {
@@ -182,6 +223,13 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                       ),
                     ),
                     const SizedBox(height: 18),
+                    _ExpirationSection(
+                      document: doc,
+                      onSetDate: _pickExpirationDate,
+                      onChangeReminder: _changeReminderLead,
+                      onClear: _clearExpiration,
+                    ),
+                    const SizedBox(height: 18),
                     Row(
                       children: [
                         Icon(Icons.auto_awesome, size: 16, color: SiftColors.accent),
@@ -251,6 +299,127 @@ String _formatDate(DateTime d) {
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
   ];
   return '${months[d.month - 1]} ${d.day.toString().padLeft(2, '0')}';
+}
+
+class _ExpirationSection extends StatelessWidget {
+  const _ExpirationSection({
+    required this.document,
+    required this.onSetDate,
+    required this.onChangeReminder,
+    required this.onClear,
+  });
+
+  final Document document;
+  final VoidCallback onSetDate;
+  final VoidCallback onChangeReminder;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: SiftColors.sidebar,
+        border: Border.all(color: SiftColors.border),
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: document.hasExpiration
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.event_busy, size: 18, color: SiftColors.textSecondary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Expires ${_formatDate(document.expiresAt!)}',
+                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 3),
+                      GestureDetector(
+                        onTap: onChangeReminder,
+                        child: Text(
+                          'Remind me ${document.reminderDaysBefore ?? 30} days before · change',
+                          style: TextStyle(fontSize: 11.5, color: SiftColors.accentDark),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: onSetDate,
+                  child: const Text('Edit'),
+                ),
+                TextButton(
+                  onPressed: onClear,
+                  child: Text('Clear', style: TextStyle(color: SiftColors.textMuted)),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Icon(Icons.event_busy, size: 18, color: SiftColors.textMuted),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Not tracking an expiration date',
+                    style: TextStyle(fontSize: 13, color: SiftColors.textSecondary),
+                  ),
+                ),
+                TextButton(onPressed: onSetDate, child: const Text('Set date')),
+              ],
+            ),
+    );
+  }
+}
+
+class _ReminderLeadSheet extends StatelessWidget {
+  const _ReminderLeadSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFFBFCFD),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 38,
+              height: 4,
+              decoration: BoxDecoration(
+                color: SiftColors.border,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Remind me before it expires',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            for (final days in _reminderLeadOptions)
+              ListTile(
+                title: Text('$days days before', style: const TextStyle(fontSize: 13.5)),
+                onTap: () => Navigator.of(context).pop(days),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _GeneratingCard extends StatelessWidget {

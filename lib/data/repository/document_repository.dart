@@ -23,6 +23,11 @@ abstract class DocumentRepository {
 
   Future<void> moveToCategory(List<int> ids, String categoryId);
 
+  /// Sets or clears when this document expires and how many days ahead of
+  /// that to remind the user. Pass `expiresAt: null` to stop tracking an
+  /// expiration entirely (clears `reminderDaysBefore` too).
+  Future<void> setExpiration(int id, {DateTime? expiresAt, int? reminderDaysBefore});
+
   /// Deletes document rows only. Callers should go through
   /// `document_actions.dart`'s `deleteDocuments`/`deleteDocumentsWithRef`
   /// instead of calling this directly — it also cleans up the underlying
