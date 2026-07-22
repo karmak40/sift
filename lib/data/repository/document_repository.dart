@@ -21,6 +21,8 @@ abstract class DocumentRepository {
 
   Future<void> updateAiSummary(int id, AiSummary? ai);
 
+  Future<void> rename(int id, String name);
+
   Future<void> moveToCategory(List<int> ids, String categoryId);
 
   /// Sets or clears when this document expires and how many days ahead of

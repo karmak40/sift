@@ -10,7 +10,7 @@ Future<void> showMoveToSheet(
   BuildContext context, {
   required List<int> documentIds,
   required List<Category> categories,
-  required VoidCallback onMoved,
+  required ValueChanged<String> onMoved,
 }) {
   return showModalBottomSheet(
     context: context,
@@ -32,7 +32,7 @@ class _MoveToSheet extends ConsumerWidget {
 
   final List<int> documentIds;
   final List<Category> categories;
-  final VoidCallback onMoved;
+  final ValueChanged<String> onMoved;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -77,7 +77,7 @@ class _MoveToSheet extends ConsumerWidget {
                       await ref
                           .read(documentRepositoryProvider)
                           .moveToCategory(documentIds, c.id);
-                      onMoved();
+                      onMoved(c.id);
                       if (context.mounted) Navigator.of(context).pop();
                     },
                   );

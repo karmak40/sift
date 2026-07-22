@@ -479,7 +479,7 @@ class _DocList extends ConsumerWidget {
                       context,
                       documentIds: uiState.selectedIds.toList(),
                       categories: categories,
-                      onMoved: controller.clearSelection,
+                      onMoved: (_) => controller.clearSelection(),
                     ),
                     icon: const Icon(Icons.drive_file_move_outline, size: 16),
                     label: const Text('Move to…'),

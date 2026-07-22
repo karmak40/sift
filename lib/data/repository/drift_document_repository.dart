@@ -76,6 +76,13 @@ class DriftDocumentRepository implements DocumentRepository {
   }
 
   @override
+  Future<void> rename(int id, String name) {
+    return (_db.update(_db.documents)..where((d) => d.id.equals(id))).write(
+      DocumentsCompanion(name: Value(name)),
+    );
+  }
+
+  @override
   Future<void> moveToCategory(List<int> ids, String categoryId) {
     return (_db.update(_db.documents)..where((d) => d.id.isIn(ids))).write(
       DocumentsCompanion(categoryId: Value(categoryId)),

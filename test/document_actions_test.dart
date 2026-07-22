@@ -55,6 +55,9 @@ class _FakeDocumentRepository implements DocumentRepository {
       throw UnimplementedError();
 
   @override
+  Future<void> rename(int id, String name) => throw UnimplementedError();
+
+  @override
   Stream<List<Document>> watchAll() => throw UnimplementedError();
 }
 

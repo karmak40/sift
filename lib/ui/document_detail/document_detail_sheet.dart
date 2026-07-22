@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/category.dart';
 import '../../data/models/document.dart';
 import '../../providers/core_providers.dart';
+import '../../providers/data_providers.dart';
 import '../../providers/document_actions.dart';
 import '../../services/ai/ai_summary_service.dart';
+import '../move/move_to_sheet.dart';
 import '../theme.dart';
 import '../widgets/ai_toggle_row.dart';
 import '../widgets/confirm_dialog.dart';
@@ -73,6 +75,46 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  Future<void> _rename() async {
+    final controller = TextEditingController(text: _doc.name);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Rename document'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+          onSubmitted: (value) => Navigator.of(dialogContext).pop(value.trim()),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (newName == null || newName.isEmpty || newName == _doc.name) return;
+    await ref.read(documentRepositoryProvider).rename(_doc.id, newName);
+    if (mounted) setState(() => _doc = _doc.copyWith(name: newName));
+  }
+
+  Future<void> _changeCategory(List<Category> categories) async {
+    await showMoveToSheet(
+      context,
+      documentIds: [_doc.id],
+      categories: categories,
+      onMoved: (categoryId) {
+        if (mounted) setState(() => _doc = _doc.copyWith(categoryId: categoryId));
+      },
+    );
+  }
+
   Future<void> _pickExpirationDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -134,7 +176,10 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
   @override
   Widget build(BuildContext context) {
     final doc = _doc;
-    final cat = widget.category;
+    final categories = ref.watch(categoriesProvider).valueOrNull;
+    final cat = categories == null
+        ? widget.category
+        : categories.cast<Category?>().firstWhere((c) => c!.id == doc.categoryId, orElse: () => null);
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       maxChildSize: 0.95,
@@ -170,18 +215,32 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                         children: [
                           Text(
                             doc.name,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 5),
                           Row(
                             children: [
-                              if (cat != null) ...[
-                                Text(
-                                  cat.name,
-                                  style: TextStyle(fontSize: 11, color: SiftColors.textSecondary),
+                              InkWell(
+                                onTap: () => _changeCategory(categories ?? const []),
+                                borderRadius: BorderRadius.circular(20),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        cat?.name ?? 'Uncategorized',
+                                        style: TextStyle(fontSize: 11, color: SiftColors.accentDark, fontWeight: FontWeight.w600),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Icon(Icons.unfold_more, size: 12, color: SiftColors.accentDark),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
-                              ],
+                              ),
+                              const SizedBox(width: 8),
                               Text(
                                 '${doc.sizeLabel} · added ${_formatDate(doc.addedAt)}',
                                 style: monoStyle(fontSize: 10.5),
@@ -190,6 +249,11 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                           ),
                         ],
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.edit_outlined, color: SiftColors.textSecondary),
+                      tooltip: 'Rename document',
+                      onPressed: _rename,
                     ),
                     IconButton(
                       icon: Icon(Icons.delete_outline, color: SiftColors.danger),

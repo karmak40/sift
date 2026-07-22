@@ -133,35 +133,6 @@ class SettingsScreen extends ConsumerWidget {
         const SizedBox(height: 22),
         const SectionLabel('Security'),
         const _SecuritySettings(),
-        const SizedBox(height: 22),
-        const SectionLabel('Account'),
-        _SettingsCard(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: SiftColors.accentSoft,
-                    child: Text('A', style: TextStyle(color: SiftColors.accentDark, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(width: 13),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Alex Rivera', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                        Text('alex@example.com', style: TextStyle(fontSize: 12, color: SiftColors.textSecondary)),
-                      ],
-                    ),
-                  ),
-                  Text('Sign out', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: SiftColors.danger)),
-                ],
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }
