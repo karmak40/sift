@@ -14,6 +14,8 @@ import '../data/web_file_storage_service.dart';
 import '../services/ai/ai_summary_service.dart';
 import '../services/ai/disabled_ai_summary_service.dart';
 import '../services/reminders/reminder_service.dart';
+import '../services/scan/document_scanner_service.dart';
+import '../services/scan/pdf_builder.dart';
 
 /// Storage backend selection. Only `local` is wired up today; `remote` is
 /// reserved for a future `RemoteDocumentRepository`/`RemoteCategoryRepository`
@@ -80,3 +82,9 @@ final aiSummaryServiceProvider = Provider<AiSummaryService>((ref) {
 });
 
 final reminderServiceProvider = Provider<ReminderService>((ref) => ReminderService());
+
+final pdfBuilderProvider = Provider<PdfBuilder>((ref) => const PdfBuilder());
+
+final documentScannerServiceProvider = Provider<DocumentScannerService>(
+  (ref) => DocumentScannerService(ref.watch(pdfBuilderProvider)),
+);

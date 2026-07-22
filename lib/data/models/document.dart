@@ -17,6 +17,20 @@ enum DocType {
     DocType.txt => 'TXT',
   };
 
+  /// Generic-enough MIME type per type — good enough for handing a file to
+  /// the OS share sheet, not meant to be authoritative for every possible
+  /// sub-format (e.g. all `img` docs are shared as `image/jpeg` regardless
+  /// of whether they're actually a PNG — a receiving app cares far more
+  /// that it's "an image" than the exact codec).
+  String get mimeType => switch (this) {
+    DocType.pdf => 'application/pdf',
+    DocType.doc => 'application/msword',
+    DocType.img => 'image/jpeg',
+    DocType.xls => 'application/vnd.ms-excel',
+    DocType.ppt => 'application/vnd.ms-powerpoint',
+    DocType.txt => 'text/plain',
+  };
+
   static DocType fromLabel(String label) => DocType.values.firstWhere(
     (t) => t.label == label.toUpperCase(),
     orElse: () => DocType.txt,

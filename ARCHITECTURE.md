@@ -72,19 +72,22 @@ lib/
       biometric_service.dart     — wraps local_auth (Face ID/Touch ID/Windows Hello)
     reminders/
       reminder_service.dart      — schedules/cancels the expiration reminder notification
+    scan/
+      pdf_builder.dart           — assembles page images into a PDF (pure Dart, tested)
+      document_scanner_service.dart — native camera scan -> PDF (mobile only)
   providers/
-    core_providers.dart        — wires up DB, repositories, file storage, AI service, reminders
+    core_providers.dart        — wires up DB, repositories, file storage, AI, reminders, scanner
     data_providers.dart        — streams of documents/categories for the UI
     library_controller.dart    — UI state: search/sort/filter/selection/tabs
     app_init_provider.dart     — runs seed_data.dart once at startup
     storage_location_controller.dart — current files-folder path + change/reset actions
-    document_actions.dart      — deleteDocuments(): removes a document's DB row, file, and reminder together
+    document_actions.dart      — PreparedFile + addDocument()/deleteDocuments() composed operations
     app_lock_providers.dart    — App Lock enabled state + the ephemeral "unlocked this session" flag
   ui/
     home/home_shell.dart       — the app shell: top bar, search box, bottom nav
     library/library_screen.dart — the main document grid/list + category chips
-    document_detail/           — the "tap a document" bottom sheet (open/delete/expiration live here)
-    upload/                    — the "add a document" bottom sheet
+    document_detail/           — the "tap a document" bottom sheet (open/share/delete/expiration live here)
+    upload/                    — startAddDocument(): files-vs-scan chooser, single + batch review sheets
     category/                  — new/manage/delete category sheets
     move/                      — the "move N documents to…" bottom sheet
     settings/settings_screen.dart
@@ -142,9 +145,28 @@ there are two similarly-named classes.
 This is the part most likely to confuse a newcomer, because "where is the
 file?" has two different answers depending on platform.
 
-1. User picks a file in the upload sheet (`lib/ui/upload/upload_sheet.dart`)
-   using the `file_picker` package — this works the same way on
-   Android/iOS/Web and gives us the file's bytes directly.
+The "+" button calls `startAddDocument` (`lib/ui/upload/upload_sheet.dart`),
+which coordinates three entry paths that all converge on the same
+`PreparedFile` shape (`{name, type, bytes, sizeBytes}`, defined in
+`document_actions.dart`):
+
+- **Choose files** — `file_picker` with `allowMultiple: true`. One file →
+  the detailed single review sheet (edit name/type/category); multiple
+  files → a batch review sheet (one category + AI toggle for the whole
+  set, keeping original filenames).
+- **Scan document** (mobile only) — `DocumentScannerService` opens the
+  native scanner and returns a single assembled PDF, which feeds the same
+  single review sheet with the name prefilled. See §10.5 below.
+- On Windows/desktop/Web there's no files-vs-scan chooser — the "+" goes
+  straight to the file picker, since scanning isn't available there.
+
+Persisting a reviewed file goes through `addDocument`/`addDocumentsWithRef`
+(`lib/providers/document_actions.dart`), which stores the bytes then creates
+the row — the same parameterized-for-testing shape as `deleteDocuments`
+(see `test/add_document_test.dart`). Then, per file:
+
+1. Its bytes came from the picker/scanner directly (both use `withData`/
+   in-memory bytes, so this works the same on Android/iOS/Web).
 2. Those bytes are handed to whichever `FileStorageService` is active:
    - **`IoFileStorageService`** (Android/iOS/desktop): writes the bytes to
      a real file under `<base dir>/sift_files/<uuid>.<ext>` and returns
@@ -249,6 +271,53 @@ document, via a trash icon next to the close button) and the library
 list view's bulk-selection bar (multiple documents, via "Delete" next to
 "Move to…") go through a confirmation dialog first
 (`lib/ui/widgets/confirm_dialog.dart`) before calling it.
+
+### Sharing a document
+
+The detail sheet's "Share" button reads the file's bytes via
+`FileStorageService.read(storageKey)` — the same abstraction `openExternally`
+and the AI service use — and hands them to `package:share_plus`
+(`SharePlus.instance.share(ShareParams(files: [XFile.fromData(...)], ...))`),
+which pops the OS share sheet (Android's share intent chooser, iOS's
+`UIActivityViewController`, etc.). Sharing by bytes rather than by path
+keeps it working identically regardless of which `FileStorageService` is
+active — it doesn't care whether the file lives on a real disk
+(`IoFileStorageService`) or as a DB blob (`WebFileStorageService`).
+`DocType.mimeType` (`lib/data/models/document.dart`) supplies a
+good-enough MIME type per document type for the share sheet to work with.
+
+Unlike App Lock and reminders, `share_plus`'s Windows plugin needed no
+workaround — it uses WRL (Windows Runtime C++ Template Library) for its COM
+interop rather than ATL, so it doesn't hit the same missing-Visual-Studio-
+component wall.
+
+### Scanning a document (mobile only)
+
+Two services split the work so the untestable half is as small as possible:
+
+- **`PdfBuilder`** (`lib/services/scan/pdf_builder.dart`) — pure Dart,
+  turns a list of page-image bytes into a one-page-per-image PDF using
+  `package:pdf`. Works on every platform and is fully unit-tested
+  (`test/pdf_builder_test.dart`) with real generated PNGs — no camera
+  needed.
+- **`DocumentScannerService`** (`lib/services/scan/document_scanner_service.dart`)
+  — wraps `cunning_document_scanner` (ML Kit Document Scanner on Android,
+  VisionKit on iOS), gets the captured page *images* (not the scanner's own
+  PDF, so assembly stays in the testable `PdfBuilder`), and returns the
+  assembled PDF's bytes. `isSupported` is false off Android/iOS, and the
+  scanner package declares only those two platforms so nothing breaks the
+  Windows/Web builds.
+
+**What can't be verified here:** the actual camera capture needs a real
+device. On the CI/emulator it was confirmed to *launch* without crashing
+(on an emulator with no ML Kit it falls back to an image picker), and the
+whole PDF-assembly + persistence path downstream of it is unit-tested — but
+a real end-to-end "point camera at paper → PDF in library" needs a physical
+phone.
+
+iOS needs `NSCameraUsageDescription` in `Info.plist` (added); Android's ML
+Kit scanner manages its own camera permission, so no manifest change was
+needed there.
 
 ---
 

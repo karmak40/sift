@@ -70,47 +70,11 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 22),
-        const SectionLabel('Storage'),
-        _SettingsCard(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Local device storage',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        '${docs.length} files',
-                        style: monoStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: LinearProgressIndicator(
-                      value: (docs.length / 100).clamp(0.03, 1.0),
-                      minHeight: 8,
-                      backgroundColor: SiftColors.border,
-                      color: SiftColors.accent,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (_canChangeStorageLocation) ...[
-              const Divider(height: 1),
-              const _StorageLocationRow(),
-            ],
-          ],
-        ),
-        const SizedBox(height: 22),
+        if (_canChangeStorageLocation) ...[
+          const SectionLabel('Storage'),
+          const _SettingsCard(children: [_StorageLocationRow()]),
+          const SizedBox(height: 22),
+        ],
         const SectionLabel('Library'),
         _SettingsCard(
           children: [

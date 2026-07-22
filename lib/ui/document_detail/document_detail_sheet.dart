@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../data/models/category.dart';
 import '../../data/models/document.dart';
@@ -62,6 +63,29 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
     if (message != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
+  }
+
+  Future<void> _shareDocument() async {
+    if (_doc.storageKey.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This document has no file attached to it.')),
+      );
+      return;
+    }
+    final bytes = await ref.read(fileStorageServiceProvider).read(_doc.storageKey);
+    if (!mounted) return;
+    if (bytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('The file is missing from disk.')),
+      );
+      return;
+    }
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile.fromData(bytes, name: _doc.name, mimeType: _doc.type.mimeType)],
+        fileNameOverrides: [_doc.name],
+      ),
+    );
   }
 
   Future<void> _delete() async {
@@ -330,13 +354,24 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _openFile,
-                    style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
-                    child: const Text('Open file'),
-                  ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _openFile,
+                        child: const Text('Open file'),
+                      ),
+                    ),
+                    const SizedBox(width: 9),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: _shareDocument,
+                        icon: const Icon(Icons.ios_share, size: 16),
+                        label: const Text('Share'),
+                        style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

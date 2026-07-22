@@ -60,7 +60,7 @@ class HomeShell extends ConsumerWidget {
       floatingActionButton: tab == MobileTab.library
           ? FloatingActionButton(
               backgroundColor: SiftColors.accent,
-              onPressed: () => showUploadSheet(context, ref),
+              onPressed: () => startAddDocument(context, ref),
               child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
