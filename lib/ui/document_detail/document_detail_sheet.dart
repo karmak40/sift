@@ -266,24 +266,13 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _openFile,
-                        child: const Text('Open file'),
-                      ),
-                    ),
-                    const SizedBox(width: 9),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.download, size: 16),
-                        label: const Text('Download'),
-                        style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
-                      ),
-                    ),
-                  ],
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _openFile,
+                    style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
+                    child: const Text('Open file'),
+                  ),
                 ),
               ),
             ],
