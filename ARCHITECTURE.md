@@ -97,7 +97,7 @@ lib/
     coming_up/                 — the "Coming up" tab: expiring/overdue documents, triaged (see §11)
     document_detail/           — the "tap a document" bottom sheet (open/share/delete/expiration live here)
     upload/                    — startAddDocument(): files-vs-scan chooser, single + batch review sheets
-    category/                  — new/manage/delete category sheets
+    category/                  — new/edit/manage/delete category sheets
     move/                      — the "move N documents to…" bottom sheet
     settings/
       settings_screen.dart      — Language/AI/Storage/Library/Security/Backup/About sections

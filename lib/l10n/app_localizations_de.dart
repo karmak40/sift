@@ -306,7 +306,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get deleteCategoryTooltip => 'Kategorie löschen';
 
   @override
+  String get editCategoryTooltip => 'Kategorie bearbeiten';
+
+  @override
   String get newCategoryTitle => 'Neue Kategorie';
+
+  @override
+  String get editCategoryTitle => 'Kategorie bearbeiten';
 
   @override
   String get categoryNamePlaceholder => 'Kategoriename';

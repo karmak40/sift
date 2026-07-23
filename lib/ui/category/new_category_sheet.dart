@@ -15,20 +15,34 @@ Future<void> showNewCategorySheet(BuildContext context) {
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => const _NewCategorySheet(),
+    builder: (_) => const _CategorySheet(),
   );
 }
 
-class _NewCategorySheet extends ConsumerStatefulWidget {
-  const _NewCategorySheet();
-
-  @override
-  ConsumerState<_NewCategorySheet> createState() => _NewCategorySheetState();
+/// Same sheet as [showNewCategorySheet], pre-filled with [category]'s current
+/// name/hue and writing changes back via `CategoryRepository.update` instead
+/// of creating a new row.
+Future<void> showEditCategorySheet(BuildContext context, Category category) {
+  return showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _CategorySheet(editing: category),
+  );
 }
 
-class _NewCategorySheetState extends ConsumerState<_NewCategorySheet> {
-  final _nameController = TextEditingController();
-  double _hue = _swatchHues.first;
+class _CategorySheet extends ConsumerStatefulWidget {
+  const _CategorySheet({this.editing});
+
+  final Category? editing;
+
+  @override
+  ConsumerState<_CategorySheet> createState() => _CategorySheetState();
+}
+
+class _CategorySheetState extends ConsumerState<_CategorySheet> {
+  late final _nameController = TextEditingController(text: widget.editing?.name ?? '');
+  late double _hue = widget.editing?.hue ?? _swatchHues.first;
 
   @override
   void dispose() {
@@ -39,9 +53,14 @@ class _NewCategorySheetState extends ConsumerState<_NewCategorySheet> {
   Future<void> _submit() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
-    await ref
-        .read(categoryRepositoryProvider)
-        .create(Category(id: const Uuid().v4(), name: name, hue: _hue));
+    final editing = widget.editing;
+    if (editing != null) {
+      await ref.read(categoryRepositoryProvider).update(editing.copyWith(name: name, hue: _hue));
+    } else {
+      await ref
+          .read(categoryRepositoryProvider)
+          .create(Category(id: const Uuid().v4(), name: name, hue: _hue));
+    }
     if (!mounted) return;
     Navigator.of(context).pop();
   }
@@ -49,6 +68,7 @@ class _NewCategorySheetState extends ConsumerState<_NewCategorySheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isEditing = widget.editing != null;
     final previewName = _nameController.text.trim().isEmpty
         ? l10n.categoryNamePlaceholder
         : _nameController.text.trim();
@@ -77,9 +97,18 @@ class _NewCategorySheetState extends ConsumerState<_NewCategorySheet> {
                     ),
                   ),
                 ),
-                Text(
-                  l10n.newCategoryTitle,
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                Row(
+                  children: [
+                    Text(
+                      isEditing ? l10n.editCategoryTitle : l10n.newCategoryTitle,
+                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -147,7 +176,7 @@ class _NewCategorySheetState extends ConsumerState<_NewCategorySheet> {
                   child: FilledButton(
                     onPressed: _nameController.text.trim().isEmpty ? null : _submit,
                     style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
-                    child: Text(l10n.createCategoryButton),
+                    child: Text(isEditing ? l10n.save : l10n.createCategoryButton),
                   ),
                 ),
               ],

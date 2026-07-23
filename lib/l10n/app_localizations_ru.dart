@@ -322,7 +322,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get deleteCategoryTooltip => 'Удалить категорию';
 
   @override
+  String get editCategoryTooltip => 'Изменить категорию';
+
+  @override
   String get newCategoryTitle => 'Новая категория';
+
+  @override
+  String get editCategoryTitle => 'Изменить категорию';
 
   @override
   String get categoryNamePlaceholder => 'Название категории';

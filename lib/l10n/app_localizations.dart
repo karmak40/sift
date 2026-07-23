@@ -528,11 +528,23 @@ abstract class AppLocalizations {
   /// **'Delete category'**
   String get deleteCategoryTooltip;
 
+  /// No description provided for @editCategoryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get editCategoryTooltip;
+
   /// No description provided for @newCategoryTitle.
   ///
   /// In en, this message translates to:
   /// **'New category'**
   String get newCategoryTitle;
+
+  /// No description provided for @editCategoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get editCategoryTitle;
 
   /// No description provided for @categoryNamePlaceholder.
   ///

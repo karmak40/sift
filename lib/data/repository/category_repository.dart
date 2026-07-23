@@ -8,5 +8,10 @@ abstract class CategoryRepository {
 
   Future<void> create(Category category);
 
+  /// Renames/recolors an existing category in place. Documents already
+  /// assigned to it keep their `categoryId` — only the category's own
+  /// `name`/`hue` change.
+  Future<void> update(Category category);
+
   Future<void> delete(String id);
 }

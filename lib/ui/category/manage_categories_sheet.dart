@@ -96,6 +96,11 @@ class _ManageCategoriesSheet extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 IconButton(
+                                  icon: const Icon(Icons.edit_outlined, size: 20),
+                                  tooltip: l10n.editCategoryTooltip,
+                                  onPressed: () => showEditCategorySheet(context, cat),
+                                ),
+                                IconButton(
                                   icon: Icon(Icons.delete_outline, color: SiftColors.danger, size: 20),
                                   tooltip: l10n.deleteCategoryTooltip,
                                   onPressed: () => deleteCategoryWithConfirm(
