@@ -94,4 +94,4 @@ ships, and the in-app version of this page will reflect the update.
 
 ## Contact
 
-Questions about this policy: Kostiantyn.Hlushchenko@convotis.ch
+Questions about this policy: karmak40@outlook.com
