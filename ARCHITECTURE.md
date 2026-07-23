@@ -113,6 +113,10 @@ local_packages/
   flutter_local_notifications_windows_stub/ — no-op override so Windows builds without the
                                               real (ATL-dependent) plugin — see §10
 PRIVACY.md                     — the actual privacy policy text (see §15)
+docs/
+  index.html                   — public web copy of PRIVACY.md, published via GitHub Pages (see §15)
+tool/
+  build_privacy_page.py        — regenerates docs/index.html from PRIVACY.md (see §15)
 ```
 
 If you're looking for where something lives, this is usually enough to
@@ -859,19 +863,35 @@ text, written to accurately describe what Sift really does — no server,
 no accounts, no analytics, camera/biometric/notification usage explained,
 and an honest callout that OS-level device backups (Android Auto Backup,
 iCloud/Finder) may include Sift's local data as a normal side effect of
-backing up the phone, same as any other app. Settings > About >
-"Privacy Policy" opens `lib/ui/settings/privacy_policy_screen.dart`,
-which renders that same file (bundled as a raw asset, so the in-app text
-and the repo copy can never drift apart) through a small hand-rolled
-line-based parser (`#`/`##` headings, `-` bullets, one `_italic_` line —
-not a full Markdown package, since that's the entire extent of what
-PRIVACY.md uses). Deliberately **not** run through `AppLocalizations`:
-this is legal-ish text, and machine-translating it carries more accuracy
-risk than the UI-chrome strings elsewhere do — only the page title and
-loading/error states are localized. App stores require a *hosted URL* for
-this, though, not just in-app text — publishing `PRIVACY.md` somewhere
-(GitHub Pages, etc.) and putting that URL into Play Console/App Store
-Connect is still a manual step outside this repo.
+backing up the phone, same as any other app. It's rendered in two places,
+each with its own small parser that's deliberately kept equivalent to the
+other rather than sharing code across a Dart/Python boundary:
+
+- **In-app**: Settings > About > "Privacy Policy" opens
+  `lib/ui/settings/privacy_policy_screen.dart`, which loads `PRIVACY.md`
+  as a bundled raw asset (see pubspec.yaml's `assets:`) so the in-app text
+  and the repo copy can never drift apart.
+- **On the web**: `tool/build_privacy_page.py` renders the same file into
+  `docs/index.html`, a small self-contained static page with light/dark
+  support, published via GitHub Pages (branch `main`, folder `/docs`) at
+  `https://karmak40.github.io/sift/`. **Re-run this script whenever
+  PRIVACY.md changes** and commit the regenerated `docs/index.html`
+  alongside it — nothing regenerates it automatically.
+
+Both parsers handle the same small subset of Markdown (`#`/`##`
+headings, `-` bullets, one leading `_italic_` line, `**bold**` spans
+stripped rather than rendered) — not a full Markdown package, since
+that's the entire extent of what PRIVACY.md uses. Both are **block-based,
+not line-based**: PRIVACY.md hard-wraps prose at ~80 columns, so a
+paragraph or a list item's text is spread across several source lines
+that need joining back into one flowing block (split only on blank
+lines) — an earlier line-by-line version of both parsers rendered every
+wrapped line as its own separate paragraph/bullet, which is a real bug
+worth remembering if either parser is ever touched again. Deliberately
+**not** run through `AppLocalizations`: this is legal-ish text, and
+machine-translating it carries more accuracy risk than the UI-chrome
+strings elsewhere do — only the in-app page's title and loading/error
+states are localized.
 
 **Settings > About** also shows the running app's version/build number,
 via `packageInfoProvider` (`core_providers.dart`, wrapping
