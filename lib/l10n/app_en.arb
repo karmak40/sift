@@ -209,5 +209,13 @@
 
   "aboutSectionLabel": "About",
   "versionTitle": "Version",
-  "privacyPolicyTitle": "Privacy Policy"
+  "privacyPolicyTitle": "Privacy Policy",
+
+  "notNow": "Not now",
+  "cameraPrimerTitle": "Scan with your camera",
+  "cameraPrimerMessage": "Sift needs camera access to turn paper documents into a PDF. Photos are processed entirely on this device and are never uploaded anywhere.",
+  "biometricPrimerTitle": "Enable biometric unlock?",
+  "biometricPrimerMessage": "Sift can also use your device's fingerprint or face unlock for faster access, instead of typing your PIN every time. You can turn this off again in Settings.",
+  "notificationsPrimerTitle": "Remind you before documents expire?",
+  "notificationsPrimerMessage": "Sift can send a local reminder a few weeks before a document like a passport or policy expires. These reminders are scheduled entirely on this device — no server involved."
 }

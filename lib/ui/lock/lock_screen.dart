@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/app_lock_providers.dart';
 import '../theme.dart';
+import '../widgets/permission_primer.dart';
 
 /// Full-screen PIN/biometric prompt shown by `AppLockGate` whenever App Lock
 /// is on and the app hasn't been unlocked yet this session.
@@ -20,6 +21,15 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   String? _error;
   bool _checking = false;
   bool _autoBiometricAttempted = false;
+  bool _biometricPrimed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isPermissionPrimed(biometricPrimedKey).then((primed) {
+      if (mounted) setState(() => _biometricPrimed = primed);
+    });
+  }
 
   @override
   void dispose() {
@@ -27,10 +37,23 @@ class _LockScreenState extends ConsumerState<LockScreen> {
     super.dispose();
   }
 
+  /// Used both for the automatic attempt (only ever triggered once
+  /// [_biometricPrimed] is already true — see build()) and the manual
+  /// "Use biometric unlock" button, which primes inline via
+  /// [ensurePermissionPrimed] as a fallback for anyone who skipped the
+  /// offer during App Lock setup but wants to turn it on now instead.
   Future<void> _tryBiometric() async {
     final l10n = AppLocalizations.of(context)!;
     final supported = await ref.read(biometricServiceProvider).isSupported();
     if (!supported || !mounted) return;
+    final primed = await ensurePermissionPrimed(
+      context,
+      prefsKey: biometricPrimedKey,
+      icon: Icons.fingerprint,
+      title: l10n.biometricPrimerTitle,
+      message: l10n.biometricPrimerMessage,
+    );
+    if (!primed || !mounted) return;
     final ok = await ref.read(biometricServiceProvider).authenticate(reason: l10n.biometricUnlockReason);
     if (ok && mounted) {
       ref.read(isUnlockedProvider.notifier).state = true;
@@ -61,10 +84,17 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     // Attempt biometric once automatically as soon as the biometric-support
-    // check resolves, so a Face ID/Windows Hello prompt appears right away
-    // without the user having to tap anything first.
+    // check resolves — but only if the user already agreed to biometric
+    // unlock during App Lock setup (`_biometricPrimed`). Otherwise this
+    // would be exactly the cold, unexplained permission prompt this whole
+    // priming mechanism exists to avoid; someone who skipped that offer
+    // still sees the manual "Use biometric unlock" button below, which
+    // primes inline when tapped.
     final biometricSupported = ref.watch(biometricSupportedProvider);
-    if (!_autoBiometricAttempted && biometricSupported.hasValue && biometricSupported.value == true) {
+    if (!_autoBiometricAttempted &&
+        _biometricPrimed &&
+        biometricSupported.hasValue &&
+        biometricSupported.value == true) {
       _autoBiometricAttempted = true;
       WidgetsBinding.instance.addPostFrameCallback((_) => _tryBiometric());
     }

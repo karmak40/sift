@@ -180,5 +180,13 @@
 
   "aboutSectionLabel": "Über",
   "versionTitle": "Version",
-  "privacyPolicyTitle": "Datenschutzerklärung"
+  "privacyPolicyTitle": "Datenschutzerklärung",
+
+  "notNow": "Nicht jetzt",
+  "cameraPrimerTitle": "Mit der Kamera scannen",
+  "cameraPrimerMessage": "Sift benötigt Kamerazugriff, um Papierdokumente in ein PDF umzuwandeln. Fotos werden vollständig auf diesem Gerät verarbeitet und nirgendwo hochgeladen.",
+  "biometricPrimerTitle": "Biometrische Entsperrung aktivieren?",
+  "biometricPrimerMessage": "Sift kann auch den Fingerabdruck- oder Gesichtsscan deines Geräts für schnelleren Zugriff nutzen, statt jedes Mal die PIN einzugeben. Du kannst dies später in den Einstellungen wieder deaktivieren.",
+  "notificationsPrimerTitle": "Vor Ablauf von Dokumenten erinnern?",
+  "notificationsPrimerMessage": "Sift kann einige Wochen bevor ein Dokument wie ein Reisepass oder eine Police abläuft, lokal daran erinnern. Diese Erinnerungen werden vollständig auf diesem Gerät geplant — kein Server beteiligt."
 }

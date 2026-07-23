@@ -15,6 +15,7 @@ import '../theme.dart';
 import '../widgets/ai_toggle_row.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/doc_icon_tile.dart';
+import '../widgets/permission_primer.dart';
 
 const _reminderLeadOptions = [7, 14, 30, 60, 90];
 
@@ -152,7 +153,16 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 50),
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final primed = await ensurePermissionPrimed(
+      context,
+      prefsKey: notificationsPrimedKey,
+      icon: Icons.notifications_none_rounded,
+      title: l10n.notificationsPrimerTitle,
+      message: l10n.notificationsPrimerMessage,
+    );
+    if (!primed || !mounted) return;
     final updated = await setDocumentExpirationWithRef(ref, _doc, expiresAt: picked);
     if (mounted) setState(() => _doc = updated);
   }

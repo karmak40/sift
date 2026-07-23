@@ -20,6 +20,7 @@ import '../lock/pin_setup_sheet.dart';
 import '../theme.dart';
 import '../widgets/ai_toggle_row.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/permission_primer.dart';
 import '../widgets/section_label.dart';
 import 'privacy_policy_screen.dart';
 
@@ -314,7 +315,24 @@ class _SecuritySettings extends ConsumerWidget {
 
   Future<void> _enable(BuildContext context, WidgetRef ref) async {
     final didSetPin = await showPinSetupSheet(context);
-    if (didSetPin) ref.invalidate(appLockEnabledProvider);
+    if (!didSetPin) return;
+    ref.invalidate(appLockEnabledProvider);
+
+    // Offer biometric unlock as a natural next step right after PIN setup,
+    // rather than letting the lock screen surprise the user with a cold
+    // Face ID/fingerprint prompt the next time it appears — see
+    // lock_screen.dart's `_biometricPrimed` gate.
+    if (!context.mounted) return;
+    final biometricSupported = await ref.read(biometricServiceProvider).isSupported();
+    if (!biometricSupported || !context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    await ensurePermissionPrimed(
+      context,
+      prefsKey: biometricPrimedKey,
+      icon: Icons.fingerprint,
+      title: l10n.biometricPrimerTitle,
+      message: l10n.biometricPrimerMessage,
+    );
   }
 
   Future<void> _disable(WidgetRef ref) async {

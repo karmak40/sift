@@ -670,4 +670,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get privacyPolicyTitle => 'Datenschutzerklärung';
+
+  @override
+  String get notNow => 'Nicht jetzt';
+
+  @override
+  String get cameraPrimerTitle => 'Mit der Kamera scannen';
+
+  @override
+  String get cameraPrimerMessage =>
+      'Sift benötigt Kamerazugriff, um Papierdokumente in ein PDF umzuwandeln. Fotos werden vollständig auf diesem Gerät verarbeitet und nirgendwo hochgeladen.';
+
+  @override
+  String get biometricPrimerTitle => 'Biometrische Entsperrung aktivieren?';
+
+  @override
+  String get biometricPrimerMessage =>
+      'Sift kann auch den Fingerabdruck- oder Gesichtsscan deines Geräts für schnelleren Zugriff nutzen, statt jedes Mal die PIN einzugeben. Du kannst dies später in den Einstellungen wieder deaktivieren.';
+
+  @override
+  String get notificationsPrimerTitle => 'Vor Ablauf von Dokumenten erinnern?';
+
+  @override
+  String get notificationsPrimerMessage =>
+      'Sift kann einige Wochen bevor ein Dokument wie ein Reisepass oder eine Police abläuft, lokal daran erinnern. Diese Erinnerungen werden vollständig auf diesem Gerät geplant — kein Server beteiligt.';
 }

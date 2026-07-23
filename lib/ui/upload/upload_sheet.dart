@@ -15,6 +15,7 @@ import '../../services/scan/document_scanner_service.dart';
 import '../theme.dart';
 import '../widgets/ai_toggle_row.dart';
 import '../widgets/doc_icon_tile.dart';
+import '../widgets/permission_primer.dart';
 
 /// Entry point for the "+" button. On mobile (where scanning is available)
 /// it first asks files-vs-scan; elsewhere it goes straight to the file
@@ -33,6 +34,15 @@ Future<void> startAddDocument(BuildContext context, WidgetRef ref) async {
       case _AddAction.files:
         await _pickAndReview(context, ref);
       case _AddAction.scan:
+        final l10n = AppLocalizations.of(context)!;
+        final primed = await ensurePermissionPrimed(
+          context,
+          prefsKey: cameraPrimedKey,
+          icon: Icons.camera_alt_outlined,
+          title: l10n.cameraPrimerTitle,
+          message: l10n.cameraPrimerMessage,
+        );
+        if (!primed || !context.mounted) return;
         await _scanAndReview(context, ref, scanner);
     }
   } else {

@@ -1109,6 +1109,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy Policy'**
   String get privacyPolicyTitle;
+
+  /// No description provided for @notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notNow;
+
+  /// No description provided for @cameraPrimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan with your camera'**
+  String get cameraPrimerTitle;
+
+  /// No description provided for @cameraPrimerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sift needs camera access to turn paper documents into a PDF. Photos are processed entirely on this device and are never uploaded anywhere.'**
+  String get cameraPrimerMessage;
+
+  /// No description provided for @biometricPrimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable biometric unlock?'**
+  String get biometricPrimerTitle;
+
+  /// No description provided for @biometricPrimerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sift can also use your device\'s fingerprint or face unlock for faster access, instead of typing your PIN every time. You can turn this off again in Settings.'**
+  String get biometricPrimerMessage;
+
+  /// No description provided for @notificationsPrimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind you before documents expire?'**
+  String get notificationsPrimerTitle;
+
+  /// No description provided for @notificationsPrimerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sift can send a local reminder a few weeks before a document like a passport or policy expires. These reminders are scheduled entirely on this device — no server involved.'**
+  String get notificationsPrimerMessage;
 }
 
 class _AppLocalizationsDelegate

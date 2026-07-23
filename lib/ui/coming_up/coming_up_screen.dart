@@ -9,6 +9,7 @@ import '../document_detail/document_detail_sheet.dart';
 import '../theme.dart';
 import '../widgets/category_dot.dart';
 import '../widgets/doc_icon_tile.dart';
+import '../widgets/permission_primer.dart';
 import 'coming_up_model.dart';
 
 String _bucketLabel(AppLocalizations l10n, ExpiryBucket bucket) => switch (bucket) {
@@ -185,7 +186,15 @@ class _ComingUpRow extends ConsumerWidget {
       lastDate: DateTime(now.year + 50),
       helpText: l10n.newExpirationDateHelp,
     );
-    if (picked == null) return;
+    if (picked == null || !context.mounted) return;
+    final primed = await ensurePermissionPrimed(
+      context,
+      prefsKey: notificationsPrimedKey,
+      icon: Icons.notifications_none_rounded,
+      title: l10n.notificationsPrimerTitle,
+      message: l10n.notificationsPrimerMessage,
+    );
+    if (!primed || !context.mounted) return;
     await setDocumentExpirationWithRef(ref, doc, expiresAt: picked);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

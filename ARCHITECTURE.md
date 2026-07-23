@@ -103,7 +103,8 @@ lib/
       settings_screen.dart      — Language/AI/Storage/Library/Security/Backup/About sections
       privacy_policy_screen.dart — renders PRIVACY.md in-app (see §15)
     lock/                      — LockScreen, AppLockGate, the PIN setup sheet
-    widgets/                   — small shared pieces (category dot, doc icon, AI/expiring badge, confirm_dialog…)
+    widgets/                   — small shared pieces (category dot, doc icon, AI/expiring badge, confirm_dialog,
+                                  permission_primer — see §16…)
     theme.dart                 — colors, fonts, the OKLCH-hue-to-Color helper
 assets/
   fonts/                       — bundled IBM Plex Sans/Mono .ttf files, not fetched at runtime (see §15)
@@ -881,7 +882,73 @@ build trap (see §10).
 
 ---
 
-## 16. How to add a common kind of feature
+## 16. Permission priming
+
+Three moments in the app trigger an OS permission prompt: scanning a
+document (camera), turning on biometric App Lock unlock, and setting a
+document's first expiration date (local notifications). Left alone, each
+of those prompts would appear "cold" — no context, the system dialog just
+shows up mid-action — which is both bad UX and something App Store
+reviewers specifically push back on. `lib/ui/widgets/permission_primer.dart`
+fixes this with one small reusable piece:
+
+- **`ensurePermissionPrimed(context, {prefsKey, icon, title, message})`**
+  shows a bottom sheet explaining, in plain language, why the upcoming
+  action needs a permission — before the action (and therefore the real OS
+  prompt) actually happens. Returns `true` if the caller should proceed.
+  Persisted per `prefsKey` via `shared_preferences`, but **only when the
+  user taps Continue** — declining ("Not now") doesn't mark it seen, so
+  the same feature re-offers the explanation next time instead of either
+  silently skipping it forever or blocking the feature outright.
+- **`isPermissionPrimed(prefsKey)`** is the read-only half, for callers
+  that need to decide whether it's safe to trigger a permission-requiring
+  action *without* asking anything first — see the biometric case below.
+- Three named prefs-key constants (`cameraPrimedKey`,
+  `notificationsPrimedKey`, `biometricPrimedKey`) live alongside the
+  function rather than as string literals at each call site, since a typo
+  would silently create a second, never-primed flag instead of failing
+  loudly.
+
+**Camera** (`upload_sheet.dart`): primed right after the user picks "Scan
+document" from the files-vs-scan chooser, before the camera actually
+opens. Declining just returns to the app with nothing scanned.
+
+**Notifications** (`document_detail_sheet.dart`'s `_pickExpirationDate()`
+and `coming_up_screen.dart`'s `_renew()`): primed before calling
+`setDocumentExpirationWithRef`, since that's what schedules the reminder
+that triggers the permission request on Android 13+/iOS. Declining means
+the expiration date doesn't get set this time either — the expiration and
+its reminder aren't currently separable in `document_actions.dart`, so
+"track the date but skip the reminder" isn't an option without a larger
+change than this priming pass was about.
+
+**Biometric App Lock is the one with a two-step gate**, because unlike
+camera/notifications it has a genuine *automatic* trigger, not just a
+button tap: `lock_screen.dart` tries biometric unlock on its own the
+moment the lock screen appears, so a user never has to tap anything to
+get prompted for Face ID/fingerprint. That auto-attempt is exactly the
+"cold prompt" problem if it's the very first time — so it's gated behind
+`_biometricPrimed`, a local flag read from `isPermissionPrimed
+(biometricPrimedKey)` in `initState()`, and only fires
+`_tryBiometric()` automatically once that's already `true`. Priming
+itself happens as a natural next step in `settings_screen.dart`'s
+`_SecuritySettings._enable()`, offered right after PIN setup succeeds
+("also enable biometric unlock?") — by the time the lock screen's
+auto-attempt can possibly run, the user already said yes to the concept,
+so the real OS Face ID/fingerprint prompt it triggers next is expected,
+not cold. The manual "Use biometric unlock" button on the lock screen
+still calls `_tryBiometric()` too, which primes inline via
+`ensurePermissionPrimed` — covering anyone who skipped the offer during
+setup but decides to try biometric unlock later anyway.
+
+**Tests**: `test/permission_primer_test.dart` covers the persistence
+contract directly (shows every time until continued, never again after
+continuing, still asks again after declining) rather than only exercising
+it indirectly through the three feature call sites.
+
+---
+
+## 17. How to add a common kind of feature
 
 **Add a new field to Document** (e.g. a "starred" flag):
 1. Add the column to the `Documents` table in `database.dart`, bump
@@ -911,7 +978,7 @@ from repositories via `ref.read(...RepositoryProvider)`, don't reach into
 
 ---
 
-## 17. Running and testing
+## 18. Running and testing
 
 ```bash
 flutter pub get

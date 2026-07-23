@@ -697,4 +697,29 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get privacyPolicyTitle => 'Политика конфиденциальности';
+
+  @override
+  String get notNow => 'Не сейчас';
+
+  @override
+  String get cameraPrimerTitle => 'Сканирование камерой';
+
+  @override
+  String get cameraPrimerMessage =>
+      'Sift нужен доступ к камере, чтобы превратить бумажные документы в PDF. Фото обрабатываются полностью на этом устройстве и никуда не загружаются.';
+
+  @override
+  String get biometricPrimerTitle => 'Включить разблокировку по биометрии?';
+
+  @override
+  String get biometricPrimerMessage =>
+      'Sift может использовать отпечаток пальца или распознавание лица для более быстрого доступа вместо ввода PIN-кода каждый раз. Вы можете отключить это позже в настройках.';
+
+  @override
+  String get notificationsPrimerTitle =>
+      'Напоминать перед истечением срока документов?';
+
+  @override
+  String get notificationsPrimerMessage =>
+      'Sift может присылать локальное напоминание за несколько недель до истечения срока действия документа, например паспорта или полиса. Эти напоминания планируются полностью на этом устройстве — без участия сервера.';
 }

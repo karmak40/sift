@@ -660,4 +660,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyPolicyTitle => 'Privacy Policy';
+
+  @override
+  String get notNow => 'Not now';
+
+  @override
+  String get cameraPrimerTitle => 'Scan with your camera';
+
+  @override
+  String get cameraPrimerMessage =>
+      'Sift needs camera access to turn paper documents into a PDF. Photos are processed entirely on this device and are never uploaded anywhere.';
+
+  @override
+  String get biometricPrimerTitle => 'Enable biometric unlock?';
+
+  @override
+  String get biometricPrimerMessage =>
+      'Sift can also use your device\'s fingerprint or face unlock for faster access, instead of typing your PIN every time. You can turn this off again in Settings.';
+
+  @override
+  String get notificationsPrimerTitle => 'Remind you before documents expire?';
+
+  @override
+  String get notificationsPrimerMessage =>
+      'Sift can send a local reminder a few weeks before a document like a passport or policy expires. These reminders are scheduled entirely on this device — no server involved.';
 }
