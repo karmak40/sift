@@ -819,6 +819,25 @@ needs the real keystore in place first. iOS signing isn't scaffolded the
 same way: it needs an actual Apple Developer account and a Team ID set in
 Xcode, which can't be prepared in advance the way a keystore file can.
 
+**Android release builds are minified** (`isMinifyEnabled`/
+`isShrinkResources` in the same `build.gradle.kts` release block) —
+`flutter build apk --release` shrank from 209MB (debug) to 66MB with this
+on. `android/app/proguard-rules.pro` has one project-specific keep rule
+block, added after actually checking (not guessing) whether it was
+needed: `flutter_local_notifications` 22.1.0 serializes scheduled-reminder
+data via Gson for restoring reminders after a device reboot, and — unlike
+most of this project's other plugins — doesn't bundle its own consumer
+proguard rules, so R8 could otherwise strip the generic-type info Gson
+needs and silently break reminders surviving a reboot in release builds
+specifically (this wouldn't show up in a debug build, since minification
+is release-only — worth remembering if reminders ever seem to
+mysteriously stop firing only in a release APK). Verified by actually
+building and installing a release APK on an emulator: cold launch,
+category seeding, and localization all render correctly with no crashes
+in logcat — this exercises Drift/sqlite3 (FFI), shared_preferences, and
+the full Riverpod provider graph under real minification, not just a
+successful compile.
+
 **Fonts are bundled locally, not fetched at runtime.** `theme.dart` used
 to call `GoogleFonts.ibmPlexSans()`/`ibmPlexMono()`, which downloads font
 files over the network on first use (and caches them) — directly at odds
