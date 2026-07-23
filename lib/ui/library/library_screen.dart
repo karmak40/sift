@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -34,7 +33,6 @@ String sortOrderLabel(AppLocalizations l10n, SortOrder order) =>
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
 
-  @Preview(name: 'My Sample Text')
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;

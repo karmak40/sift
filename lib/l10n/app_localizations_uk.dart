@@ -751,6 +751,23 @@ class AppLocalizationsUk extends AppLocalizations {
       'Sift може надсилати локальне нагадування за кілька тижнів до закінчення терміну дії документа, наприклад паспорта чи поліса. Ці нагадування плануються повністю на цьому пристрої — без участі сервера.';
 
   @override
+  String get openSettingsButton => 'Відкрити налаштування';
+
+  @override
+  String get cameraPermissionDeniedTitle => 'Доступ до камери вимкнено';
+
+  @override
+  String get cameraPermissionDeniedMessage =>
+      'Sift не може сканувати документи без доступу до камери. Увімкніть його для Sift у налаштуваннях пристрою й спробуйте ще раз.';
+
+  @override
+  String get notificationsPermissionDeniedTitle => 'Нагадування вимкнено';
+
+  @override
+  String get notificationsPermissionDeniedMessage =>
+      'Сповіщення для Sift вимкнено, тому це нагадування не спрацює — але дату закінчення терміну збережено, і вона з\'явиться на вкладці «Незабаром». Увімкніть сповіщення в налаштуваннях, якщо хочете отримувати нагадування.';
+
+  @override
   String get splashTagline => 'Порядок у файлах — спокій у голові';
 
   @override

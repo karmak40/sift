@@ -12,27 +12,34 @@ import '../widgets/doc_icon_tile.dart';
 import '../widgets/permission_primer.dart';
 import 'coming_up_model.dart';
 
-String _bucketLabel(AppLocalizations l10n, ExpiryBucket bucket) => switch (bucket) {
-  ExpiryBucket.overdue => l10n.bucketOverdue,
-  ExpiryBucket.thisWeek => l10n.bucketThisWeek,
-  ExpiryBucket.thisMonth => l10n.bucketThisMonth,
-  ExpiryBucket.comingUp => l10n.bucketComingUp,
-};
+String _bucketLabel(AppLocalizations l10n, ExpiryBucket bucket) =>
+    switch (bucket) {
+      ExpiryBucket.overdue => l10n.bucketOverdue,
+      ExpiryBucket.thisWeek => l10n.bucketThisWeek,
+      ExpiryBucket.thisMonth => l10n.bucketThisMonth,
+      ExpiryBucket.comingUp => l10n.bucketComingUp,
+    };
 
-String _formatExpiryPhrase(AppLocalizations l10n, ExpiryPhrase phrase) => switch (phrase.kind) {
-  ExpiryPhraseKind.today => l10n.expiresToday,
-  ExpiryPhraseKind.tomorrow => l10n.expiresTomorrow,
-  ExpiryPhraseKind.yesterday => l10n.expiredYesterday,
-  ExpiryPhraseKind.daysAgo => l10n.expiredDaysAgo(phrase.amount),
-  ExpiryPhraseKind.monthsAgo => l10n.expiredMonthsAgo(phrase.amount),
-  ExpiryPhraseKind.inDays => l10n.expiresInDays(phrase.amount),
-  ExpiryPhraseKind.inWeeks => l10n.expiresInWeeks(phrase.amount),
-  ExpiryPhraseKind.inMonths => l10n.expiresInMonths(phrase.amount),
-};
+String _formatExpiryPhrase(AppLocalizations l10n, ExpiryPhrase phrase) =>
+    switch (phrase.kind) {
+      ExpiryPhraseKind.today => l10n.expiresToday,
+      ExpiryPhraseKind.tomorrow => l10n.expiresTomorrow,
+      ExpiryPhraseKind.yesterday => l10n.expiredYesterday,
+      ExpiryPhraseKind.daysAgo => l10n.expiredDaysAgo(phrase.amount),
+      ExpiryPhraseKind.monthsAgo => l10n.expiredMonthsAgo(phrase.amount),
+      ExpiryPhraseKind.inDays => l10n.expiresInDays(phrase.amount),
+      ExpiryPhraseKind.inWeeks => l10n.expiresInWeeks(phrase.amount),
+      ExpiryPhraseKind.inMonths => l10n.expiresInMonths(phrase.amount),
+    };
 
-String? _summaryText(AppLocalizations l10n, List<MapEntry<ExpiryBucket, int>> counts) {
+String? _summaryText(
+  AppLocalizations l10n,
+  List<MapEntry<ExpiryBucket, int>> counts,
+) {
   if (counts.isEmpty) return null;
-  return counts.map((e) => '${e.value} ${_bucketLabel(l10n, e.key).toLowerCase()}').join(' · ');
+  return counts
+      .map((e) => '${e.value} ${_bucketLabel(l10n, e.key).toLowerCase()}')
+      .join(' · ');
 }
 
 /// The "Coming up" tab: documents that are expiring soon or overdue,
@@ -46,7 +53,8 @@ class ComingUpScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final docsAsync = ref.watch(documentsProvider);
-    final categories = ref.watch(categoriesProvider).valueOrNull ?? const <Category>[];
+    final categories =
+        ref.watch(categoriesProvider).valueOrNull ?? const <Category>[];
     final catById = {for (final c in categories) c.id: c};
 
     return docsAsync.when(
@@ -75,11 +83,13 @@ class ComingUpScreen extends ConsumerWidget {
             lastBucket = entry.bucket;
             children.add(_BucketHeader(bucket: entry.bucket));
           }
-          children.add(_ComingUpRow(
-            entry: entry,
-            category: catById[entry.document.categoryId],
-            now: now,
-          ));
+          children.add(
+            _ComingUpRow(
+              entry: entry,
+              category: catById[entry.document.categoryId],
+              now: now,
+            ),
+          );
         }
         children.add(const SizedBox(height: 90));
 
@@ -109,7 +119,11 @@ class _AllCaughtUp extends StatelessWidget {
                 color: hueColorAlpha(150, 0.16),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: Icon(Icons.check_rounded, size: 32, color: hueColor(150, lightness: 0.42)),
+              child: Icon(
+                Icons.check_rounded,
+                size: 32,
+                color: hueColor(150, lightness: 0.42),
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -120,7 +134,11 @@ class _AllCaughtUp extends StatelessWidget {
             Text(
               l10n.allCaughtUpMessage(comingUpHorizonDays),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: SiftColors.textSecondary, height: 1.4),
+              style: TextStyle(
+                fontSize: 13,
+                color: SiftColors.textSecondary,
+                height: 1.4,
+              ),
             ),
           ],
         ),
@@ -152,12 +170,19 @@ class _BucketHeader extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(color: _bucketColor(bucket), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: _bucketColor(bucket),
+              shape: BoxShape.circle,
+            ),
           ),
           const SizedBox(width: 8),
           Text(
             _bucketLabel(l10n, bucket).toUpperCase(),
-            style: monoStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _bucketColor(bucket)),
+            style: monoStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: _bucketColor(bucket),
+            ),
           ),
         ],
       ),
@@ -166,7 +191,11 @@ class _BucketHeader extends StatelessWidget {
 }
 
 class _ComingUpRow extends ConsumerWidget {
-  const _ComingUpRow({required this.entry, required this.category, required this.now});
+  const _ComingUpRow({
+    required this.entry,
+    required this.category,
+    required this.now,
+  });
 
   final ComingUpEntry entry;
   final Category? category;
@@ -195,11 +224,13 @@ class _ComingUpRow extends ConsumerWidget {
       message: l10n.notificationsPrimerMessage,
     );
     if (!primed || !context.mounted) return;
+    await warnIfNotificationsPermanentlyDenied(context);
+    if (!context.mounted) return;
     await setDocumentExpirationWithRef(ref, doc, expiresAt: picked);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.renewedSnackbar(doc.name))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.renewedSnackbar(doc.name))));
     }
   }
 
@@ -229,14 +260,21 @@ class _ComingUpRow extends ConsumerWidget {
                     doc.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Row(
                     children: [
                       Text(
                         _formatExpiryPhrase(l10n, relativeExpiry(doc, now)),
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
                       ),
                       if (category != null) ...[
                         const SizedBox(width: 8),
@@ -244,7 +282,10 @@ class _ComingUpRow extends ConsumerWidget {
                         const SizedBox(width: 4),
                         Text(
                           category!.name,
-                          style: TextStyle(fontSize: 11, color: SiftColors.textSecondary),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: SiftColors.textSecondary,
+                          ),
                         ),
                       ],
                     ],
@@ -265,11 +306,24 @@ class _ComingUpRow extends ConsumerWidget {
                   child: Text(l10n.renew),
                 ),
                 InkWell(
-                  onTap: () => showDocumentDetailSheet(context, document: doc, category: category),
+                  onTap: () => showDocumentDetailSheet(
+                    context,
+                    document: doc,
+                    category: category,
+                  ),
                   borderRadius: BorderRadius.circular(6),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    child: Text(l10n.details, style: TextStyle(fontSize: 12, color: SiftColors.textMuted)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    child: Text(
+                      l10n.details,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: SiftColors.textMuted,
+                      ),
+                    ),
                   ),
                 ),
               ],

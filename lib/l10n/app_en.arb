@@ -226,6 +226,11 @@
   "resetPinPrimerMessage": "To reset your PIN, Sift will ask your device to confirm it's you — using your fingerprint, face, or your phone's own screen lock. Nothing about your documents changes; you'll just choose a new PIN afterward.",
   "notificationsPrimerTitle": "Remind you before documents expire?",
   "notificationsPrimerMessage": "Sift can send a local reminder a few weeks before a document like a passport or policy expires. These reminders are scheduled entirely on this device — no server involved.",
+  "openSettingsButton": "Open Settings",
+  "cameraPermissionDeniedTitle": "Camera access is off",
+  "cameraPermissionDeniedMessage": "Sift can't scan documents without camera access. Turn it on for Sift in Settings, then try scanning again.",
+  "notificationsPermissionDeniedTitle": "Reminders are off",
+  "notificationsPermissionDeniedMessage": "Notifications are turned off for Sift, so this reminder won't actually notify you — but the expiration date is saved and will still show up in Coming Up. Turn notifications on in Settings if you'd like a reminder too.",
 
   "splashTagline": "Tidy files, happy mind",
   "onboardingStoreTitle": "Everything in one place",

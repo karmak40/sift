@@ -1200,6 +1200,36 @@ abstract class AppLocalizations {
   /// **'Sift can send a local reminder a few weeks before a document like a passport or policy expires. These reminders are scheduled entirely on this device — no server involved.'**
   String get notificationsPrimerMessage;
 
+  /// No description provided for @openSettingsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettingsButton;
+
+  /// No description provided for @cameraPermissionDeniedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is off'**
+  String get cameraPermissionDeniedTitle;
+
+  /// No description provided for @cameraPermissionDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sift can\'t scan documents without camera access. Turn it on for Sift in Settings, then try scanning again.'**
+  String get cameraPermissionDeniedMessage;
+
+  /// No description provided for @notificationsPermissionDeniedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are off'**
+  String get notificationsPermissionDeniedTitle;
+
+  /// No description provided for @notificationsPermissionDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are turned off for Sift, so this reminder won\'t actually notify you — but the expiration date is saved and will still show up in Coming Up. Turn notifications on in Settings if you\'d like a reminder too.'**
+  String get notificationsPermissionDeniedMessage;
+
   /// No description provided for @splashTagline.
   ///
   /// In en, this message translates to:

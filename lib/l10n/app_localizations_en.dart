@@ -712,6 +712,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sift can send a local reminder a few weeks before a document like a passport or policy expires. These reminders are scheduled entirely on this device — no server involved.';
 
   @override
+  String get openSettingsButton => 'Open Settings';
+
+  @override
+  String get cameraPermissionDeniedTitle => 'Camera access is off';
+
+  @override
+  String get cameraPermissionDeniedMessage =>
+      'Sift can\'t scan documents without camera access. Turn it on for Sift in Settings, then try scanning again.';
+
+  @override
+  String get notificationsPermissionDeniedTitle => 'Reminders are off';
+
+  @override
+  String get notificationsPermissionDeniedMessage =>
+      'Notifications are turned off for Sift, so this reminder won\'t actually notify you — but the expiration date is saved and will still show up in Coming Up. Turn notifications on in Settings if you\'d like a reminder too.';
+
+  @override
   String get splashTagline => 'Tidy files, happy mind';
 
   @override

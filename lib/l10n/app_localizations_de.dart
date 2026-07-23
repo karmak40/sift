@@ -723,6 +723,24 @@ class AppLocalizationsDe extends AppLocalizations {
       'Sift kann einige Wochen bevor ein Dokument wie ein Reisepass oder eine Police abläuft, lokal daran erinnern. Diese Erinnerungen werden vollständig auf diesem Gerät geplant — kein Server beteiligt.';
 
   @override
+  String get openSettingsButton => 'Einstellungen öffnen';
+
+  @override
+  String get cameraPermissionDeniedTitle => 'Kamerazugriff ist deaktiviert';
+
+  @override
+  String get cameraPermissionDeniedMessage =>
+      'Sift kann ohne Kamerazugriff keine Dokumente scannen. Aktiviere ihn für Sift in den Einstellungen und versuche es erneut.';
+
+  @override
+  String get notificationsPermissionDeniedTitle =>
+      'Erinnerungen sind deaktiviert';
+
+  @override
+  String get notificationsPermissionDeniedMessage =>
+      'Benachrichtigungen sind für Sift deaktiviert, daher wird diese Erinnerung dich nicht tatsächlich benachrichtigen — das Ablaufdatum wird aber gespeichert und erscheint weiterhin unter „Demnächst“. Aktiviere Benachrichtigungen in den Einstellungen, wenn du auch eine Erinnerung erhalten möchtest.';
+
+  @override
   String get splashTagline => 'Ordentliche Dateien, ruhiger Kopf';
 
   @override

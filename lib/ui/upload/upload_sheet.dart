@@ -1,8 +1,10 @@
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../data/models/category.dart';
 import '../../data/models/document.dart';
@@ -43,6 +45,25 @@ Future<void> startAddDocument(BuildContext context, WidgetRef ref) async {
           message: l10n.cameraPrimerMessage,
         );
         if (!primed || !context.mounted) return;
+        // Only iOS's scanner (VisionKit's VNDocumentCameraViewController)
+        // touches Sift's own camera permission in-process. Android's scanner
+        // (Play Services' ML Kit Document Scanner, or a system Camera app
+        // intent as a fallback — see DocumentScannerService's doc comment)
+        // runs under a separate app/process's own permission, so there's
+        // nothing for Sift to check or recover there.
+        if (Platform.isIOS) {
+          final status = await Permission.camera.request();
+          if (status.isPermanentlyDenied) {
+            if (!context.mounted) return;
+            await showPermissionSettingsDialog(
+              context,
+              title: l10n.cameraPermissionDeniedTitle,
+              message: l10n.cameraPermissionDeniedMessage,
+            );
+            return;
+          }
+          if (!status.isGranted || !context.mounted) return;
+        }
         await _scanAndReview(context, ref, scanner);
     }
   } else {
@@ -60,7 +81,10 @@ PreparedFile _toPrepared(PlatformFile f) => PreparedFile(
 );
 
 Future<void> _pickAndReview(BuildContext context, WidgetRef ref) async {
-  final result = await FilePicker.platform.pickFiles(allowMultiple: true, withData: true);
+  final result = await FilePicker.platform.pickFiles(
+    allowMultiple: true,
+    withData: true,
+  );
   if (result == null || result.files.isEmpty || !context.mounted) return;
   final prepared = result.files.map(_toPrepared).toList();
   if (prepared.length == 1) {
@@ -81,18 +105,24 @@ Future<void> _scanAndReview(
     pdf = await scanner.scanToPdf();
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.scanFailed('$e'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.scanFailed('$e'))));
     }
     return;
   }
   if (pdf == null || !context.mounted) return; // user cancelled
   final now = DateTime.now();
-  final name = '${l10n.scanFilePrefix} ${now.year}-${_two(now.month)}-${_two(now.day)}.pdf';
+  final name =
+      '${l10n.scanFilePrefix} ${now.year}-${_two(now.month)}-${_two(now.day)}.pdf';
   await _showReviewSheet(
     context,
-    PreparedFile(name: name, type: DocType.pdf, bytes: pdf, sizeBytes: pdf.length),
+    PreparedFile(
+      name: name,
+      type: DocType.pdf,
+      bytes: pdf,
+      sizeBytes: pdf.length,
+    ),
   );
 }
 
@@ -159,7 +189,10 @@ class _AddActionSheet extends StatelessWidget {
               onTap: () => Navigator.of(context).pop(_AddAction.files),
             ),
             ListTile(
-              leading: Icon(Icons.document_scanner_outlined, color: SiftColors.accent),
+              leading: Icon(
+                Icons.document_scanner_outlined,
+                color: SiftColors.accent,
+              ),
               title: Text(l10n.scanDocument),
               subtitle: Text(l10n.scanDocumentSubtitle),
               onTap: () => Navigator.of(context).pop(_AddAction.scan),
@@ -209,31 +242,30 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
     final name = _nameController.text.trim();
     if (name.isEmpty || _categoryId == null) return;
     setState(() => _submitting = true);
-    await addDocumentsWithRef(
-      ref,
-      [
-        PreparedFile(
-          name: name,
-          type: _type,
-          bytes: widget.file.bytes,
-          sizeBytes: widget.file.sizeBytes,
-        ),
-      ],
-      _categoryId!,
-    );
+    await addDocumentsWithRef(ref, [
+      PreparedFile(
+        name: name,
+        type: _type,
+        bytes: widget.file.bytes,
+        sizeBytes: widget.file.sizeBytes,
+      ),
+    ], _categoryId!);
     if (mounted) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final categories = ref.watch(categoriesProvider).valueOrNull ?? const <Category>[];
+    final categories =
+        ref.watch(categoriesProvider).valueOrNull ?? const <Category>[];
     if (_categoryId == null && categories.isNotEmpty) {
       _categoryId = categories.first.id;
     }
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Container(
         decoration: _sheetDecoration,
         child: SafeArea(
@@ -244,7 +276,13 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _grabber(),
-                Text(l10n.addDocumentTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                Text(
+                  l10n.addDocumentTitle,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -273,9 +311,17 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
                     Expanded(
                       child: DropdownButtonFormField<DocType>(
                         initialValue: _type,
-                        decoration: InputDecoration(labelText: l10n.typeLabel, border: const OutlineInputBorder()),
+                        decoration: InputDecoration(
+                          labelText: l10n.typeLabel,
+                          border: const OutlineInputBorder(),
+                        ),
                         items: DocType.values
-                            .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
+                            .map(
+                              (t) => DropdownMenuItem(
+                                value: t,
+                                child: Text(t.label),
+                              ),
+                            )
                             .toList(),
                         onChanged: (t) => setState(() => _type = t ?? _type),
                       ),
@@ -284,9 +330,17 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         initialValue: _categoryId,
-                        decoration: InputDecoration(labelText: l10n.categoryLabel, border: const OutlineInputBorder()),
+                        decoration: InputDecoration(
+                          labelText: l10n.categoryLabel,
+                          border: const OutlineInputBorder(),
+                        ),
                         items: categories
-                            .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                            .map(
+                              (c) => DropdownMenuItem(
+                                value: c.id,
+                                child: Text(c.name),
+                              ),
+                            )
                             .toList(),
                         onChanged: (id) => setState(() => _categoryId = id),
                       ),
@@ -298,20 +352,30 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
                   title: l10n.summarizeWithAi,
                   subtitle: l10n.aiOptionalSubtitle,
                   value: _aiOn,
-                  onChanged: aiFeaturesEnabled ? (v) => setState(() => _aiOn = v) : null,
+                  onChanged: aiFeaturesEnabled
+                      ? (v) => setState(() => _aiOn = v)
+                      : null,
                 ),
                 const SizedBox(height: 18),
                 SizedBox(
                   width: double.infinity,
                   height: 46,
                   child: FilledButton(
-                    onPressed: (_nameController.text.trim().isEmpty || _submitting) ? null : _submit,
-                    style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
+                    onPressed:
+                        (_nameController.text.trim().isEmpty || _submitting)
+                        ? null
+                        : _submit,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: SiftColors.accent,
+                    ),
                     child: _submitting
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                         : Text(l10n.addDocumentTitle),
                   ),
@@ -358,14 +422,17 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final categories = ref.watch(categoriesProvider).valueOrNull ?? const <Category>[];
+    final categories =
+        ref.watch(categoriesProvider).valueOrNull ?? const <Category>[];
     if (_categoryId == null && categories.isNotEmpty) {
       _categoryId = categories.first.id;
     }
     final count = widget.files.length;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Container(
         decoration: _sheetDecoration,
         child: SafeArea(
@@ -376,11 +443,20 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _grabber(),
-                Text(l10n.addDocumentsCount(count), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                Text(
+                  l10n.addDocumentsCount(count),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   l10n.batchSameCategoryNote,
-                  style: TextStyle(fontSize: 12.5, color: SiftColors.textSecondary),
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: SiftColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 14),
                 ConstrainedBox(
@@ -400,9 +476,21 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
                         final f = widget.files[i];
                         return ListTile(
                           dense: true,
-                          leading: DocIconTile(type: f.type, width: 28, height: 34),
-                          title: Text(f.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
-                          trailing: Text(_sizeLabel(f.sizeBytes), style: monoStyle(fontSize: 10.5)),
+                          leading: DocIconTile(
+                            type: f.type,
+                            width: 28,
+                            height: 34,
+                          ),
+                          title: Text(
+                            f.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          trailing: Text(
+                            _sizeLabel(f.sizeBytes),
+                            style: monoStyle(fontSize: 10.5),
+                          ),
                         );
                       },
                     ),
@@ -411,9 +499,15 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
                 const SizedBox(height: 15),
                 DropdownButtonFormField<String>(
                   initialValue: _categoryId,
-                  decoration: InputDecoration(labelText: l10n.categoryLabel, border: const OutlineInputBorder()),
+                  decoration: InputDecoration(
+                    labelText: l10n.categoryLabel,
+                    border: const OutlineInputBorder(),
+                  ),
                   items: categories
-                      .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                      .map(
+                        (c) =>
+                            DropdownMenuItem(value: c.id, child: Text(c.name)),
+                      )
                       .toList(),
                   onChanged: (id) => setState(() => _categoryId = id),
                 ),
@@ -422,7 +516,9 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
                   title: l10n.summarizeWithAi,
                   subtitle: l10n.aiOptionalSubtitle,
                   value: _aiOn,
-                  onChanged: aiFeaturesEnabled ? (v) => setState(() => _aiOn = v) : null,
+                  onChanged: aiFeaturesEnabled
+                      ? (v) => setState(() => _aiOn = v)
+                      : null,
                 ),
                 const SizedBox(height: 18),
                 SizedBox(
@@ -430,12 +526,17 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
                   height: 46,
                   child: FilledButton(
                     onPressed: _submitting ? null : _submit,
-                    style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: SiftColors.accent,
+                    ),
                     child: _submitting
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                         : Text(l10n.addDocumentsCount(count)),
                   ),

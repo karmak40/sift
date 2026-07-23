@@ -28,7 +28,8 @@ Future<void> showDocumentDetailSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => _DocumentDetailSheet(document: document, category: category),
+    builder: (_) =>
+        _DocumentDetailSheet(document: document, category: category),
   );
 }
 
@@ -39,7 +40,8 @@ class _DocumentDetailSheet extends ConsumerStatefulWidget {
   final Category? category;
 
   @override
-  ConsumerState<_DocumentDetailSheet> createState() => _DocumentDetailSheetState();
+  ConsumerState<_DocumentDetailSheet> createState() =>
+      _DocumentDetailSheetState();
 }
 
 class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
@@ -62,31 +64,39 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
   }
 
   Future<void> _openFile() async {
-    final message = await ref.read(fileStorageServiceProvider).openExternally(_doc.storageKey);
+    final message = await ref
+        .read(fileStorageServiceProvider)
+        .openExternally(_doc.storageKey);
     if (message != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
   Future<void> _shareDocument() async {
     final l10n = AppLocalizations.of(context)!;
     if (_doc.storageKey.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.noFileAttached)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.noFileAttached)));
       return;
     }
-    final bytes = await ref.read(fileStorageServiceProvider).read(_doc.storageKey);
+    final bytes = await ref
+        .read(fileStorageServiceProvider)
+        .read(_doc.storageKey);
     if (!mounted) return;
     if (bytes == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.fileMissingFromDisk)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.fileMissingFromDisk)));
       return;
     }
     await SharePlus.instance.share(
       ShareParams(
-        files: [XFile.fromData(bytes, name: _doc.name, mimeType: _doc.type.mimeType)],
+        files: [
+          XFile.fromData(bytes, name: _doc.name, mimeType: _doc.type.mimeType),
+        ],
         fileNameOverrides: [_doc.name],
       ),
     );
@@ -123,7 +133,8 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(controller.text.trim()),
             child: Text(l10n.save),
           ),
         ],
@@ -140,7 +151,9 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
       documentIds: [_doc.id],
       categories: categories,
       onMoved: (categoryId) {
-        if (mounted) setState(() => _doc = _doc.copyWith(categoryId: categoryId));
+        if (mounted) {
+          setState(() => _doc = _doc.copyWith(categoryId: categoryId));
+        }
       },
     );
   }
@@ -149,7 +162,8 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _doc.expiresAt ?? DateTime(now.year, now.month, now.day + 30),
+      initialDate:
+          _doc.expiresAt ?? DateTime(now.year, now.month, now.day + 30),
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 50),
     );
@@ -163,7 +177,13 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
       message: l10n.notificationsPrimerMessage,
     );
     if (!primed || !mounted) return;
-    final updated = await setDocumentExpirationWithRef(ref, _doc, expiresAt: picked);
+    await warnIfNotificationsPermanentlyDenied(context);
+    if (!mounted) return;
+    final updated = await setDocumentExpirationWithRef(
+      ref,
+      _doc,
+      expiresAt: picked,
+    );
     if (mounted) setState(() => _doc = updated);
   }
 
@@ -184,7 +204,11 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
   }
 
   Future<void> _clearExpiration() async {
-    final updated = await setDocumentExpirationWithRef(ref, _doc, expiresAt: null);
+    final updated = await setDocumentExpirationWithRef(
+      ref,
+      _doc,
+      expiresAt: null,
+    );
     if (mounted) setState(() => _doc = updated);
   }
 
@@ -192,7 +216,9 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
     setState(() => _generating = true);
     try {
       final summary = await ref.read(aiSummaryServiceProvider).summarize(_doc);
-      await ref.read(documentRepositoryProvider).updateAiSummary(_doc.id, summary);
+      await ref
+          .read(documentRepositoryProvider)
+          .updateAiSummary(_doc.id, summary);
       if (!mounted) return;
       setState(() {
         _doc = _doc.copyWith(ai: summary);
@@ -202,7 +228,9 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
       if (!mounted) return;
       setState(() => _generating = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.aiDisabledSnackbar)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.aiDisabledSnackbar),
+        ),
       );
     }
   }
@@ -214,7 +242,10 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
     final categories = ref.watch(categoriesProvider).valueOrNull;
     final cat = categories == null
         ? widget.category
-        : categories.cast<Category?>().firstWhere((c) => c!.id == doc.categoryId, orElse: () => null);
+        : categories.cast<Category?>().firstWhere(
+            (c) => c!.id == doc.categoryId,
+            orElse: () => null,
+          );
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       maxChildSize: 0.95,
@@ -252,32 +283,49 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                             doc.name,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           const SizedBox(height: 5),
                           Row(
                             children: [
                               InkWell(
-                                onTap: () => _changeCategory(categories ?? const []),
+                                onTap: () =>
+                                    _changeCategory(categories ?? const []),
                                 borderRadius: BorderRadius.circular(20),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 2,
+                                  ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
                                         cat?.name ?? l10n.uncategorized,
-                                        style: TextStyle(fontSize: 11, color: SiftColors.accentDark, fontWeight: FontWeight.w600),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: SiftColors.accentDark,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                       const SizedBox(width: 2),
-                                      Icon(Icons.unfold_more, size: 12, color: SiftColors.accentDark),
+                                      Icon(
+                                        Icons.unfold_more,
+                                        size: 12,
+                                        color: SiftColors.accentDark,
+                                      ),
                                     ],
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                l10n.sizeAddedOn(doc.sizeLabel, _formatDate(doc.addedAt)),
+                                l10n.sizeAddedOn(
+                                  doc.sizeLabel,
+                                  _formatDate(doc.addedAt),
+                                ),
                                 style: monoStyle(fontSize: 10.5),
                               ),
                             ],
@@ -286,12 +334,18 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.edit_outlined, color: SiftColors.textSecondary),
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        color: SiftColors.textSecondary,
+                      ),
                       tooltip: l10n.renameDocumentTitle,
                       onPressed: _rename,
                     ),
                     IconButton(
-                      icon: Icon(Icons.delete_outline, color: SiftColors.danger),
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: SiftColors.danger,
+                      ),
                       tooltip: l10n.deleteDocumentTooltip,
                       onPressed: _delete,
                     ),
@@ -331,7 +385,11 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                     const SizedBox(height: 18),
                     Row(
                       children: [
-                        Icon(Icons.auto_awesome, size: 16, color: SiftColors.accent),
+                        Icon(
+                          Icons.auto_awesome,
+                          size: 16,
+                          color: SiftColors.accent,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           l10n.aiSummaryLabel,
@@ -379,7 +437,9 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                         onPressed: _shareDocument,
                         icon: const Icon(Icons.ios_share, size: 16),
                         label: Text(l10n.share),
-                        style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: SiftColors.accent,
+                        ),
                       ),
                     ),
                   ],
@@ -424,7 +484,11 @@ class _ExpirationSection extends StatelessWidget {
           ? Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.event_busy, size: 18, color: SiftColors.textSecondary),
+                Icon(
+                  Icons.event_busy,
+                  size: 18,
+                  color: SiftColors.textSecondary,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -432,26 +496,34 @@ class _ExpirationSection extends StatelessWidget {
                     children: [
                       Text(
                         l10n.expiresOn(_formatDate(document.expiresAt!)),
-                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(height: 3),
                       GestureDetector(
                         onTap: onChangeReminder,
                         child: Text(
-                          l10n.remindMeDaysBeforeChange(document.reminderDaysBefore ?? 30),
-                          style: TextStyle(fontSize: 11.5, color: SiftColors.accentDark),
+                          l10n.remindMeDaysBeforeChange(
+                            document.reminderDaysBefore ?? 30,
+                          ),
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: SiftColors.accentDark,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                TextButton(
-                  onPressed: onSetDate,
-                  child: Text(l10n.edit),
-                ),
+                TextButton(onPressed: onSetDate, child: Text(l10n.edit)),
                 TextButton(
                   onPressed: onClear,
-                  child: Text(l10n.clear, style: TextStyle(color: SiftColors.textMuted)),
+                  child: Text(
+                    l10n.clear,
+                    style: TextStyle(color: SiftColors.textMuted),
+                  ),
                 ),
               ],
             )
@@ -462,7 +534,10 @@ class _ExpirationSection extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l10n.notTrackingExpiration,
-                    style: TextStyle(fontSize: 13, color: SiftColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: SiftColors.textSecondary,
+                    ),
                   ),
                 ),
                 TextButton(onPressed: onSetDate, child: Text(l10n.setDate)),
@@ -503,13 +578,19 @@ class _ReminderLeadSheet extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   l10n.remindBeforeExpiresTitle,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
             for (final days in _reminderLeadOptions)
               ListTile(
-                title: Text(l10n.daysBeforeOption(days), style: const TextStyle(fontSize: 13.5)),
+                title: Text(
+                  l10n.daysBeforeOption(days),
+                  style: const TextStyle(fontSize: 13.5),
+                ),
                 onTap: () => Navigator.of(context).pop(days),
               ),
             const SizedBox(height: 8),
@@ -571,10 +652,17 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Text(
             summary.summary as String,
-            style: const TextStyle(fontSize: 14, height: 1.5, color: SiftColors.textPrimary),
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.5,
+              color: SiftColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 14),
-          Text(AppLocalizations.of(context)!.keyPointsLabel, style: monoStyle(fontSize: 10, fontWeight: FontWeight.w700)),
+          Text(
+            AppLocalizations.of(context)!.keyPointsLabel,
+            style: monoStyle(fontSize: 10, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 9),
           for (final pt in (summary.points as List))
             Padding(
@@ -597,7 +685,11 @@ class _SummaryCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       pt as String,
-                      style: TextStyle(fontSize: 13, color: SiftColors.textSecondary, height: 1.4),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: SiftColors.textSecondary,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ],
@@ -629,7 +721,11 @@ class _NoSummaryCard extends StatelessWidget {
           Text(
             disabled ? l10n.aiDisabledLong : l10n.aiNoSummaryYet,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: SiftColors.textSecondary, height: 1.5),
+            style: TextStyle(
+              fontSize: 13,
+              color: SiftColors.textSecondary,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 13),
           FilledButton.icon(

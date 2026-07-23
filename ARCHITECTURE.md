@@ -996,10 +996,49 @@ still calls `_tryBiometric()` too, which primes inline via
 `ensurePermissionPrimed` — covering anyone who skipped the offer during
 setup but decides to try biometric unlock later anyway.
 
+**Permanently-denied recovery**: priming only covers the *first* ask —
+if the user (or the OS, after repeated denials) permanently denies a
+permission, the real OS prompt stops appearing at all, and re-tapping the
+feature would otherwise just silently fail with no path forward. Two more
+pieces in `permission_primer.dart`, backed by the `permission_handler`
+package, close that gap:
+
+- **`showPermissionSettingsDialog(context, {title, message})`** — a plain
+  Cancel/"Open Settings" dialog; the latter calls `openAppSettings()` to
+  drop the user straight into this app's page in the system Settings app.
+- **`warnIfNotificationsPermanentlyDenied(context)`** — checks
+  `Permission.notification.status` (read-only; never calls `.request()`
+  itself, since `ReminderService` already does that the first time a
+  reminder is actually scheduled) and shows the dialog above if
+  permanently denied. Called from both notification call sites right after
+  priming succeeds, but **never blocks** — the expiration date still gets
+  saved either way, since it's independently useful (surfaces in "Coming
+  up") even without a working OS reminder.
+- The **camera** side only needed this on **iOS**: `upload_sheet.dart`
+  requests `Permission.camera` and shows the dialog (blocking the scan
+  attempt) only if permanently denied — but only inside `if
+  (Platform.isIOS)`. Android's scanner never touches Sift's own camera
+  permission at all: `cunning_document_scanner` either launches Play
+  Services' own ML Kit Document Scanner UI, or falls back to a
+  `MediaStore.ACTION_IMAGE_CAPTURE` intent handled by the system Camera
+  app — both run under a *different* app/process's own camera access, not
+  Sift's. Only iOS's scanner (`VNDocumentCameraViewController`/VisionKit)
+  runs in-process against Sift's own `NSCameraUsageDescription`, so it's
+  the only platform where "permanently denied" is a real state to recover
+  from here.
+
 **Tests**: `test/permission_primer_test.dart` covers the persistence
 contract directly (shows every time until continued, never again after
 continuing, still asks again after declining) rather than only exercising
-it indirectly through the three feature call sites.
+it indirectly through the three feature call sites — plus the two
+permanently-denied helpers above, mocking `permission_handler`'s method
+channel directly (`flutter.baseflow.com/permissions/methods`) since there's
+no injectable fake for its static `Permission.x` API the way there is for
+`BiometricService`. The iOS-only camera branch in `upload_sheet.dart` isn't
+unit-tested — `Platform.isIOS` reflects the real host OS with no test seam,
+same limitation as the existing `Platform.isAndroid`/`isIOS` checks
+elsewhere in this codebase (`BiometricService`, `DocumentScannerService`,
+`ReminderService`), verified instead by manual/device testing.
 
 ---
 
