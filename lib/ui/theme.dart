@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Approximates the design's OKLCH hue-based palette using HSL, since
 /// Flutter's Color has no native OKLCH support. Visually close enough for
@@ -48,6 +47,9 @@ class SiftColors {
   };
 }
 
+const _sansFamily = 'IBM Plex Sans';
+const _monoFamily = 'IBM Plex Mono';
+
 ThemeData buildSiftTheme() {
   final base = ThemeData(
     useMaterial3: true,
@@ -56,10 +58,9 @@ ThemeData buildSiftTheme() {
       primary: SiftColors.accent,
     ),
     scaffoldBackgroundColor: SiftColors.background,
-    fontFamily: GoogleFonts.ibmPlexSans().fontFamily,
+    fontFamily: _sansFamily,
   );
   return base.copyWith(
-    textTheme: GoogleFonts.ibmPlexSansTextTheme(base.textTheme),
     appBarTheme: const AppBarTheme(
       backgroundColor: SiftColors.surface,
       foregroundColor: SiftColors.textPrimary,
@@ -72,7 +73,8 @@ TextStyle monoStyle({
   double fontSize = 11,
   FontWeight fontWeight = FontWeight.w500,
   Color color = SiftColors.textMuted,
-}) => GoogleFonts.ibmPlexMono(
+}) => TextStyle(
+  fontFamily: _monoFamily,
   fontSize: fontSize,
   fontWeight: fontWeight,
   color: color,

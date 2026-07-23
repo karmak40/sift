@@ -688,4 +688,13 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get backupTooNew =>
       'Цю резервну копію створено новішою версією Sift, і її не можна відновити тут.';
+
+  @override
+  String get aboutSectionLabel => 'Про застосунок';
+
+  @override
+  String get versionTitle => 'Версія';
+
+  @override
+  String get privacyPolicyTitle => 'Політика конфіденційності';
 }

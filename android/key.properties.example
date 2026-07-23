@@ -1,0 +1,20 @@
+# Copy this file to `android/key.properties` (same folder) and fill in your
+# real values — that file is gitignored and must never be committed, since
+# it references your actual keystore and its passwords.
+#
+# 1. Generate a keystore if you don't have one yet:
+#      keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA \
+#        -keysize 2048 -validity 10000 -alias upload
+#    Keep the resulting .jks file and these passwords somewhere safe — losing
+#    them means you can never publish an update to an app already on the
+#    Play Store under this signing key.
+# 2. Place the .jks file somewhere under android/ (or reference it by an
+#    absolute path below) and point storeFile at it.
+# 3. `flutter build appbundle --release` / `flutter build apk --release`
+#    will then sign with this real key instead of falling back to the debug
+#    keystore (see the comment in android/app/build.gradle.kts).
+
+storePassword=REPLACE_WITH_YOUR_KEYSTORE_PASSWORD
+keyPassword=REPLACE_WITH_YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=../upload-keystore.jks

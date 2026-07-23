@@ -99,13 +99,19 @@ lib/
     upload/                    — startAddDocument(): files-vs-scan chooser, single + batch review sheets
     category/                  — new/manage/delete category sheets
     move/                      — the "move N documents to…" bottom sheet
-    settings/settings_screen.dart
+    settings/
+      settings_screen.dart      — Language/AI/Storage/Library/Security/Backup/About sections
+      privacy_policy_screen.dart — renders PRIVACY.md in-app (see §15)
     lock/                      — LockScreen, AppLockGate, the PIN setup sheet
     widgets/                   — small shared pieces (category dot, doc icon, AI/expiring badge, confirm_dialog…)
     theme.dart                 — colors, fonts, the OKLCH-hue-to-Color helper
+assets/
+  fonts/                       — bundled IBM Plex Sans/Mono .ttf files, not fetched at runtime (see §15)
+  icon/                        — app icon source images for flutter_launcher_icons (see §15)
 local_packages/
   flutter_local_notifications_windows_stub/ — no-op override so Windows builds without the
                                               real (ATL-dependent) plugin — see §10
+PRIVACY.md                     — the actual privacy policy text (see §15)
 ```
 
 If you're looking for where something lives, this is usually enough to
@@ -792,7 +798,90 @@ direction.
 
 ---
 
-## 15. How to add a common kind of feature
+## 15. Store readiness (signing, fonts, icon, privacy policy)
+
+A handful of things that don't fit neatly under a single feature heading,
+done together while getting Sift ready for a real Play Store/App Store
+submission.
+
+**Android release signing** (`android/app/build.gradle.kts`): reads
+`android/key.properties` (gitignored, never committed — see
+`android/key.properties.example` for the format and how to generate a
+keystore) for the release `signingConfig`. Until that file exists, release
+builds fall back to the debug keystore purely so `flutter build apk
+--release` keeps working for local testing — a real Play Store upload
+needs the real keystore in place first. iOS signing isn't scaffolded the
+same way: it needs an actual Apple Developer account and a Team ID set in
+Xcode, which can't be prepared in advance the way a keystore file can.
+
+**Fonts are bundled locally, not fetched at runtime.** `theme.dart` used
+to call `GoogleFonts.ibmPlexSans()`/`ibmPlexMono()`, which downloads font
+files over the network on first use (and caches them) — directly at odds
+with an app whose whole pitch is "your documents stay on your device."
+The actual IBM Plex Sans/Mono `.ttf` files (Regular/Medium/SemiBold/Bold —
+every weight the app actually uses, checked via a `grep` for
+`FontWeight.w` across `lib/`) now live under `assets/fonts/`, declared as
+two font families (`IBM Plex Sans`, `IBM Plex Mono`) in `pubspec.yaml`,
+and referenced directly by family name from `theme.dart`. The
+`google_fonts` package dependency is gone entirely — not just unused —
+so there's no code path left that could make that network call.
+`assets/fonts/IBM-Plex-LICENSE.txt` is the upstream SIL Open Font License.
+
+**App icon**: `assets/icon/icon_full.png` (opaque, square corners — see
+below) and `assets/icon/icon_foreground.png` (transparent, for Android's
+adaptive icon system) are the source images `flutter_launcher_icons`
+(configured via the `flutter_launcher_icons:` block in `pubspec.yaml`)
+generates every platform size from — run `dart run flutter_launcher_icons`
+after changing either. Both source images are rendered by
+`test/tools/generate_app_icon.dart` (not a real test — it doesn't end in
+`_test.dart`, so a bare `flutter test` sweep won't pick it up; invoke it
+explicitly, then re-run the generator command, if the brand mark ever
+changes) rather than hand-drawn, so the icon is pixel-consistent with the
+in-app logo mark (`home_shell.dart`'s AppBar "S" tile) — same color
+(`#5841C8`, computed from `hueColor(250, lightness: 0.52)`), same font.
+Two Apple-specific gotchas worth knowing if this ever needs regenerating:
+the 1024×1024 App Store marketing icon must have **no alpha channel at
+all**, even one where every pixel is fully opaque (`remove_alpha_ios:
+true` handles this); and it must **not** have pre-rounded corners — iOS
+applies its own corner mask at render time, so a source icon should be a
+full-bleed square and let each platform do its own masking (Android's
+masking is what the separate foreground/background adaptive-icon layers
+are for). Windows gets the same `icon_full.png` too (the
+`flutter_launcher_icons` `windows:` block, `icon_size: 256` — the format's
+max — for the sharpest result across title bar/taskbar/Explorer), writing
+`windows/runner/resources/app_icon.ico`; this is what shows in the
+window's top-left corner and the taskbar, separate from — and previously
+missed alongside — the Android/iOS icons.
+
+**Privacy policy**: `PRIVACY.md` at the repo root is the actual policy
+text, written to accurately describe what Sift really does — no server,
+no accounts, no analytics, camera/biometric/notification usage explained,
+and an honest callout that OS-level device backups (Android Auto Backup,
+iCloud/Finder) may include Sift's local data as a normal side effect of
+backing up the phone, same as any other app. Settings > About >
+"Privacy Policy" opens `lib/ui/settings/privacy_policy_screen.dart`,
+which renders that same file (bundled as a raw asset, so the in-app text
+and the repo copy can never drift apart) through a small hand-rolled
+line-based parser (`#`/`##` headings, `-` bullets, one `_italic_` line —
+not a full Markdown package, since that's the entire extent of what
+PRIVACY.md uses). Deliberately **not** run through `AppLocalizations`:
+this is legal-ish text, and machine-translating it carries more accuracy
+risk than the UI-chrome strings elsewhere do — only the page title and
+loading/error states are localized. App stores require a *hosted URL* for
+this, though, not just in-app text — publishing `PRIVACY.md` somewhere
+(GitHub Pages, etc.) and putting that URL into Play Console/App Store
+Connect is still a manual step outside this repo.
+
+**Settings > About** also shows the running app's version/build number,
+via `packageInfoProvider` (`core_providers.dart`, wrapping
+`package_info_plus`) — chosen specifically because its Windows support is
+pure Dart (no compiled native plugin), so unlike some earlier Windows
+plugin choices in this project it doesn't risk the missing-ATL-component
+build trap (see §10).
+
+---
+
+## 16. How to add a common kind of feature
 
 **Add a new field to Document** (e.g. a "starred" flag):
 1. Add the column to the `Documents` table in `database.dart`, bump
@@ -822,7 +911,7 @@ from repositories via `ref.read(...RepositoryProvider)`, don't reach into
 
 ---
 
-## 16. Running and testing
+## 17. Running and testing
 
 ```bash
 flutter pub get

@@ -661,4 +661,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get backupTooNew =>
       'Diese Sicherung wurde mit einer neueren Version von Sift erstellt und kann hier nicht wiederhergestellt werden.';
+
+  @override
+  String get aboutSectionLabel => 'Über';
+
+  @override
+  String get versionTitle => 'Version';
+
+  @override
+  String get privacyPolicyTitle => 'Datenschutzerklärung';
 }

@@ -21,6 +21,7 @@ import '../theme.dart';
 import '../widgets/ai_toggle_row.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/section_label.dart';
+import 'privacy_policy_screen.dart';
 
 /// Endonyms — each language's own name for itself — deliberately not run
 /// through AppLocalizations: a Russian speaker picking "Deutsch" from the
@@ -131,6 +132,9 @@ class SettingsScreen extends ConsumerWidget {
           SectionLabel(l10n.backupSectionLabel),
           const _BackupSettings(),
         ],
+        const SizedBox(height: 22),
+        SectionLabel(l10n.aboutSectionLabel),
+        const _AboutSettings(),
       ],
     );
   }
@@ -569,6 +573,35 @@ class _BackupSettingsState extends ConsumerState<_BackupSettings> {
           subtitle: l10n.restoreSubtitle,
           trailing: _busy ? busyIndicator : const SizedBox.shrink(),
           onTap: _busy ? null : _restore,
+        ),
+      ],
+    );
+  }
+}
+
+class _AboutSettings extends ConsumerWidget {
+  const _AboutSettings();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final info = ref.watch(packageInfoProvider).valueOrNull;
+    return _SettingsCard(
+      children: [
+        _SettingsRow(
+          title: l10n.versionTitle,
+          trailing: Text(
+            info == null ? '' : '${info.version} (${info.buildNumber})',
+            style: monoStyle(fontSize: 13, color: SiftColors.textSecondary),
+          ),
+        ),
+        const Divider(height: 1),
+        _SettingsRow(
+          title: l10n.privacyPolicyTitle,
+          trailing: const SizedBox.shrink(),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+          ),
         ),
       ],
     );

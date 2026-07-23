@@ -1091,6 +1091,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This backup was made with a newer version of Sift and can\'t be restored here.'**
   String get backupTooNew;
+
+  /// No description provided for @aboutSectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutSectionLabel;
+
+  /// No description provided for @versionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get versionTitle;
+
+  /// No description provided for @privacyPolicyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicyTitle;
 }
 
 class _AppLocalizationsDelegate

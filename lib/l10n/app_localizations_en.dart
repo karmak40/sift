@@ -651,4 +651,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get backupTooNew =>
       'This backup was made with a newer version of Sift and can\'t be restored here.';
+
+  @override
+  String get aboutSectionLabel => 'About';
+
+  @override
+  String get versionTitle => 'Version';
+
+  @override
+  String get privacyPolicyTitle => 'Privacy Policy';
 }

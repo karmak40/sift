@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../config/app_config.dart';
 import '../data/file_storage_service.dart';
@@ -91,6 +92,9 @@ final backupServiceProvider = Provider<BackupService>((ref) {
 });
 
 final pdfBuilderProvider = Provider<PdfBuilder>((ref) => const PdfBuilder());
+
+/// App name/version/build number, for the Settings > About section.
+final packageInfoProvider = FutureProvider<PackageInfo>((ref) => PackageInfo.fromPlatform());
 
 final documentScannerServiceProvider = Provider<DocumentScannerService>(
   (ref) => DocumentScannerService(ref.watch(pdfBuilderProvider)),

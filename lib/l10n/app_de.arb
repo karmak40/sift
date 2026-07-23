@@ -176,5 +176,9 @@
   "gotIt": "Verstanden",
   "restoreFailedSnackbar": "Sicherung konnte nicht wiederhergestellt werden: {error}",
   "invalidBackupFile": "Das sieht nicht wie eine Sift-Sicherungsdatei aus.",
-  "backupTooNew": "Diese Sicherung wurde mit einer neueren Version von Sift erstellt und kann hier nicht wiederhergestellt werden."
+  "backupTooNew": "Diese Sicherung wurde mit einer neueren Version von Sift erstellt und kann hier nicht wiederhergestellt werden.",
+
+  "aboutSectionLabel": "Über",
+  "versionTitle": "Version",
+  "privacyPolicyTitle": "Datenschutzerklärung"
 }

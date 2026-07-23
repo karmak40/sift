@@ -205,5 +205,9 @@
   "restoreFailedSnackbar": "Couldn't restore backup: {error}",
   "@restoreFailedSnackbar": { "placeholders": { "error": { "type": "String" } } },
   "invalidBackupFile": "This doesn't look like a Sift backup file.",
-  "backupTooNew": "This backup was made with a newer version of Sift and can't be restored here."
+  "backupTooNew": "This backup was made with a newer version of Sift and can't be restored here.",
+
+  "aboutSectionLabel": "About",
+  "versionTitle": "Version",
+  "privacyPolicyTitle": "Privacy Policy"
 }
