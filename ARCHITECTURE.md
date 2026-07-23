@@ -987,7 +987,90 @@ it indirectly through the three feature call sites.
 
 ---
 
-## 17. How to add a common kind of feature
+## 17. Splash screen & first-launch onboarding
+
+The very first thing a user sees: a short animated brand reveal
+(`lib/ui/splash/splash_screen.dart`), then — first launch only — a
+3-page feature tour (`lib/ui/onboarding/onboarding_screen.dart`), then the
+real app. `SplashGate` in `main.dart` is what stitches these together.
+
+**`SplashScreen`** is a single `AnimationController` driving everything via
+staggered `Interval`s — no separate controller per element. Two curve
+helpers matter here:
+
+```dart
+Animation<double> _bounce(double start, double end) => CurvedAnimation(
+  parent: _controller,
+  curve: Interval(start, end, curve: Curves.elasticOut),
+);
+Animation<double> _fade(double start, double end) => CurvedAnimation(
+  parent: _controller,
+  curve: Interval(start, end, curve: Curves.easeOut),
+);
+```
+
+`Curves.elasticOut` overshoots past `1.0` (and below `0.0`) partway through
+— exactly what makes a `Transform.scale`/`ScaleTransition` feel bouncy, but
+`Opacity`/`FadeTransition` **asserts** its value stays within `[0, 1]` and
+will crash if fed the same curve. Every animated element on this screen
+(the mark, the three file chips, the four falling confetti pieces, each
+letter of the wordmark) therefore has *two* animations — one `_bounce` for
+scale/position, one `_fade` for opacity — never one curve doing both jobs.
+
+The confetti/chips/mark all live in one small local `Stack` (`SizedBox
+(width: 200, height: 150)`, not a full-screen one) with `clipBehavior:
+Clip.none`, since confetti starts above the box (`top: -40`) and falls
+through it via `Transform.translate`. Positioning them in a full-screen
+Stack instead is a trap: `Positioned` coordinates are relative to the
+*nearest* enclosing `Stack`, so anything positioned there ends up
+stranded relative to the screen instead of the mark it's meant to
+surround.
+
+**`OnboardingScreen`** is a plain 3-page `PageView` (Store / Organize /
+Find) with a dot indicator and a Next/Get started button — no "Welcome"
+page, since the splash screen already covers that same brand-reveal
+moment. Each `_OnboardingPage`'s illustration sits in
+`Expanded(child: Align(alignment: Alignment.bottomCenter, child:
+illustration))`, not `Center` — `Center` would center the illustration
+within all the leftover vertical space on the page, stranding it far above
+the title/body text (which are fixed-size and therefore pinned to the
+bottom of the column) with a large dead gap between them. `Align(
+bottomCenter, ...)` keeps the illustration flush against the text instead,
+pushing any extra breathing room to the top of the page. Copy was
+rewritten from the original design doc, which claimed automatic
+smart-tagging — not a real Sift feature, since categories are always
+user-created and user-assigned.
+
+**`OnboardingController`** persists a single `has_seen_onboarding` flag via
+`shared_preferences` (same pattern as `AppLocaleController` and the
+permission primer — see §16). It only ever flips false → true; there's no
+UI to re-trigger onboarding, so reinstalling the app is the only reset.
+
+**`SplashGate`** (in `main.dart`, replacing the old bare-spinner `_AppRoot`)
+shows `SplashScreen` for at least `SplashScreen.duration` (2200ms) while
+`appInitProvider` (category seeding) and `onboardingControllerProvider`
+resolve in the background, then routes to `OnboardingScreen` (first launch)
+or straight into `AppLockGate(child: HomeShell())`. It's reactive, not a
+one-shot navigation: once `OnboardingScreen` calls `markSeen()`, the
+provider's new state rebuilds `SplashGate` and it falls through to the home
+shell on its own — no `Navigator.push` involved.
+
+**Tests**: `test/onboarding_controller_test.dart` covers the persistence
+contract directly. `test/splash_gate_test.dart` boots the actual
+`SplashGate` widget tree (splash → onboarding → home-shell routing) with
+`appInitProvider` and the `categoriesProvider`/`documentsProvider` streams
+overridden to instant no-op values — needed because letting those hit a
+real Drift database inside a widget test triggers a `drift` gotcha: a
+query stream's cancellation schedules a zero-duration `Timer` that outlives
+the test's fake-async zone and trips `flutter_test`'s "no pending timers"
+invariant on teardown. Stubbing at the `StreamProvider` level (not
+`appDatabaseProvider`) sidesteps that class of problem entirely rather than
+working around it. `localization_test.dart` covers the splash tagline
+translating per locale, alongside the app's other ARB-key checks.
+
+---
+
+## 18. How to add a common kind of feature
 
 **Add a new field to Document** (e.g. a "starred" flag):
 1. Add the column to the `Documents` table in `database.dart`, bump
@@ -1017,7 +1100,7 @@ from repositories via `ref.read(...RepositoryProvider)`, don't reach into
 
 ---
 
-## 18. Running and testing
+## 19. Running and testing
 
 ```bash
 flutter pub get
@@ -1029,11 +1112,15 @@ flutter run -d <android-device>  # primary shipping-target verification
 ```
 
 `flutter test` covers the pure-Dart filter/sort logic in
-`LibraryController` (`test/widget_test.dart`). It deliberately does not
-boot the full app widget tree, because that needs real `path_provider`/
-`sqlite3` platform channels that aren't available in the unit-test
-environment — full golden-path verification is done by actually running
-the app (web or a device/emulator), not by an automated widget test.
+`LibraryController` (`test/widget_test.dart`), plus focused widget tests
+for individual screens/controllers. None of these boot the full app
+against a *real* database — that needs actual `path_provider`/`sqlite3`
+platform channels that aren't available in the unit-test environment —
+but `test/splash_gate_test.dart` does boot the real startup widget tree
+(splash → onboarding → home shell routing) with the data-stream providers
+overridden to stand-ins (see §17). Full golden-path verification with a
+real, populated database is still done by actually running the app (web
+or a device/emulator), not by an automated widget test.
 
 There is no seeded demo data anymore: a fresh install starts with the five
 default categories (Finance/Health/Housing/Personal/Travel) and an empty

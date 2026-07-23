@@ -684,4 +684,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notificationsPrimerMessage =>
       'Sift can send a local reminder a few weeks before a document like a passport or policy expires. These reminders are scheduled entirely on this device — no server involved.';
+
+  @override
+  String get splashTagline => 'Tidy files, happy mind';
+
+  @override
+  String get onboardingStoreTitle => 'Everything in one place';
+
+  @override
+  String get onboardingStoreBody =>
+      'Upload files or scan paper documents with your camera — everything lands safely in your library, stored right on this device.';
+
+  @override
+  String get onboardingOrganizeTitle => 'Organize your way';
+
+  @override
+  String get onboardingOrganizeBody =>
+      'Sort documents into categories you create — Finance, Health, Travel, whatever makes sense to you.';
+
+  @override
+  String get onboardingFindTitle => 'Find it in a snap';
+
+  @override
+  String get onboardingFindBody =>
+      'Search by name, filter by category, and get reminded before anything important expires.';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingGetStarted => 'Get started';
 }

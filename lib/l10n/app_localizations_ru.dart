@@ -722,4 +722,34 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get notificationsPrimerMessage =>
       'Sift может присылать локальное напоминание за несколько недель до истечения срока действия документа, например паспорта или полиса. Эти напоминания планируются полностью на этом устройстве — без участия сервера.';
+
+  @override
+  String get splashTagline => 'Порядок в файлах — порядок в голове';
+
+  @override
+  String get onboardingStoreTitle => 'Всё в одном месте';
+
+  @override
+  String get onboardingStoreBody =>
+      'Загружайте файлы или сканируйте бумажные документы камерой — всё надёжно попадает в библиотеку и хранится прямо на этом устройстве.';
+
+  @override
+  String get onboardingOrganizeTitle => 'Организуйте по-своему';
+
+  @override
+  String get onboardingOrganizeBody =>
+      'Распределяйте документы по категориям, которые создаёте сами, — Финансы, Здоровье, Путешествия, что угодно.';
+
+  @override
+  String get onboardingFindTitle => 'Находите за секунду';
+
+  @override
+  String get onboardingFindBody =>
+      'Ищите по названию, фильтруйте по категориям и получайте напоминания, прежде чем что-то важное истечёт.';
+
+  @override
+  String get onboardingNext => 'Далее';
+
+  @override
+  String get onboardingGetStarted => 'Начать';
 }

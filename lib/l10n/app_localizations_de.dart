@@ -694,4 +694,34 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get notificationsPrimerMessage =>
       'Sift kann einige Wochen bevor ein Dokument wie ein Reisepass oder eine Police abläuft, lokal daran erinnern. Diese Erinnerungen werden vollständig auf diesem Gerät geplant — kein Server beteiligt.';
+
+  @override
+  String get splashTagline => 'Ordentliche Dateien, ruhiger Kopf';
+
+  @override
+  String get onboardingStoreTitle => 'Alles an einem Ort';
+
+  @override
+  String get onboardingStoreBody =>
+      'Lade Dateien hoch oder scanne Papierdokumente mit der Kamera — alles landet sicher in deiner Bibliothek und wird direkt auf diesem Gerät gespeichert.';
+
+  @override
+  String get onboardingOrganizeTitle => 'Organisiere es auf deine Art';
+
+  @override
+  String get onboardingOrganizeBody =>
+      'Sortiere Dokumente in Kategorien, die du selbst erstellst — Finanzen, Gesundheit, Reisen, was immer für dich Sinn ergibt.';
+
+  @override
+  String get onboardingFindTitle => 'Im Handumdrehen gefunden';
+
+  @override
+  String get onboardingFindBody =>
+      'Suche nach Namen, filtere nach Kategorie und werde erinnert, bevor etwas Wichtiges abläuft.';
+
+  @override
+  String get onboardingNext => 'Weiter';
+
+  @override
+  String get onboardingGetStarted => 'Loslegen';
 }

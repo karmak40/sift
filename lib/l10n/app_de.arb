@@ -188,5 +188,15 @@
   "biometricPrimerTitle": "Biometrische Entsperrung aktivieren?",
   "biometricPrimerMessage": "Sift kann auch den Fingerabdruck- oder Gesichtsscan deines Geräts für schnelleren Zugriff nutzen, statt jedes Mal die PIN einzugeben. Du kannst dies später in den Einstellungen wieder deaktivieren.",
   "notificationsPrimerTitle": "Vor Ablauf von Dokumenten erinnern?",
-  "notificationsPrimerMessage": "Sift kann einige Wochen bevor ein Dokument wie ein Reisepass oder eine Police abläuft, lokal daran erinnern. Diese Erinnerungen werden vollständig auf diesem Gerät geplant — kein Server beteiligt."
+  "notificationsPrimerMessage": "Sift kann einige Wochen bevor ein Dokument wie ein Reisepass oder eine Police abläuft, lokal daran erinnern. Diese Erinnerungen werden vollständig auf diesem Gerät geplant — kein Server beteiligt.",
+
+  "splashTagline": "Ordentliche Dateien, ruhiger Kopf",
+  "onboardingStoreTitle": "Alles an einem Ort",
+  "onboardingStoreBody": "Lade Dateien hoch oder scanne Papierdokumente mit der Kamera — alles landet sicher in deiner Bibliothek und wird direkt auf diesem Gerät gespeichert.",
+  "onboardingOrganizeTitle": "Organisiere es auf deine Art",
+  "onboardingOrganizeBody": "Sortiere Dokumente in Kategorien, die du selbst erstellst — Finanzen, Gesundheit, Reisen, was immer für dich Sinn ergibt.",
+  "onboardingFindTitle": "Im Handumdrehen gefunden",
+  "onboardingFindBody": "Suche nach Namen, filtere nach Kategorie und werde erinnert, bevor etwas Wichtiges abläuft.",
+  "onboardingNext": "Weiter",
+  "onboardingGetStarted": "Loslegen"
 }

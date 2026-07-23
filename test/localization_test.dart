@@ -72,6 +72,22 @@ void main() {
     });
   });
 
+  group('splash tagline translates per locale', () {
+    final expected = {
+      const Locale('en'): 'Tidy files, happy mind',
+      const Locale('ru'): 'Порядок в файлах — порядок в голове',
+      const Locale('uk'): 'Порядок у файлах — спокій у голові',
+      const Locale('de'): 'Ordentliche Dateien, ruhiger Kopf',
+    };
+
+    for (final entry in expected.entries) {
+      testWidgets('${entry.key.languageCode} -> "${entry.value}"', (tester) async {
+        await _pumpWithLocale(tester, entry.key, (l10n) => Text(l10n.splashTagline));
+        expect(find.text(entry.value), findsOneWidget);
+      });
+    }
+  });
+
   testWidgets('placeholder interpolation substitutes real values', (tester) async {
     await _pumpWithLocale(
       tester,

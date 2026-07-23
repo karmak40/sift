@@ -217,5 +217,15 @@
   "biometricPrimerTitle": "Enable biometric unlock?",
   "biometricPrimerMessage": "Sift can also use your device's fingerprint or face unlock for faster access, instead of typing your PIN every time. You can turn this off again in Settings.",
   "notificationsPrimerTitle": "Remind you before documents expire?",
-  "notificationsPrimerMessage": "Sift can send a local reminder a few weeks before a document like a passport or policy expires. These reminders are scheduled entirely on this device — no server involved."
+  "notificationsPrimerMessage": "Sift can send a local reminder a few weeks before a document like a passport or policy expires. These reminders are scheduled entirely on this device — no server involved.",
+
+  "splashTagline": "Tidy files, happy mind",
+  "onboardingStoreTitle": "Everything in one place",
+  "onboardingStoreBody": "Upload files or scan paper documents with your camera — everything lands safely in your library, stored right on this device.",
+  "onboardingOrganizeTitle": "Organize your way",
+  "onboardingOrganizeBody": "Sort documents into categories you create — Finance, Health, Travel, whatever makes sense to you.",
+  "onboardingFindTitle": "Find it in a snap",
+  "onboardingFindBody": "Search by name, filter by category, and get reminded before anything important expires.",
+  "onboardingNext": "Next",
+  "onboardingGetStarted": "Get started"
 }

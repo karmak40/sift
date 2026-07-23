@@ -6,8 +6,11 @@ import 'package:intl/intl.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/app_init_provider.dart';
 import 'providers/app_locale_controller.dart';
+import 'providers/onboarding_controller.dart';
 import 'ui/home/home_shell.dart';
 import 'ui/lock/app_lock_gate.dart';
+import 'ui/onboarding/onboarding_screen.dart';
+import 'ui/splash/splash_screen.dart';
 import 'ui/theme.dart';
 
 void main() {
@@ -56,21 +59,49 @@ class SiftApp extends ConsumerWidget {
       },
       home: localeOverride.isLoading
           ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-          : const _AppRoot(),
+          : const SplashGate(),
     );
   }
 }
 
-class _AppRoot extends ConsumerWidget {
-  const _AppRoot();
+/// Shows [SplashScreen] for at least its animation's [SplashScreen.duration]
+/// while [appInitProvider] and [onboardingControllerProvider] resolve in the
+/// background, then routes to [OnboardingScreen] (first launch only) or
+/// straight into [AppLockGate]/[HomeShell]. Reactive, not a one-shot
+/// navigation: once [OnboardingScreen] calls `markSeen()`, this widget
+/// rebuilds and falls through to the home shell on its own.
+class SplashGate extends ConsumerStatefulWidget {
+  const SplashGate({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SplashGate> createState() => _SplashGateState();
+}
+
+class _SplashGateState extends ConsumerState<SplashGate> {
+  bool _minDurationElapsed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(SplashScreen.duration, () {
+      if (mounted) setState(() => _minDurationElapsed = true);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final init = ref.watch(appInitProvider);
-    return init.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, st) => Scaffold(body: Center(child: Text('Startup failed: $e'))),
-      data: (_) => const AppLockGate(child: HomeShell()),
-    );
+    final onboarding = ref.watch(onboardingControllerProvider);
+
+    if (!_minDurationElapsed || init.isLoading || onboarding.isLoading) {
+      return const SplashScreen();
+    }
+    if (init.hasError) {
+      return Scaffold(body: Center(child: Text('Startup failed: ${init.error}')));
+    }
+    if (!(onboarding.valueOrNull ?? false)) {
+      return const OnboardingScreen();
+    }
+    return const AppLockGate(child: HomeShell());
   }
 }

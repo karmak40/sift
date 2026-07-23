@@ -1151,6 +1151,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sift can send a local reminder a few weeks before a document like a passport or policy expires. These reminders are scheduled entirely on this device — no server involved.'**
   String get notificationsPrimerMessage;
+
+  /// No description provided for @splashTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidy files, happy mind'**
+  String get splashTagline;
+
+  /// No description provided for @onboardingStoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in one place'**
+  String get onboardingStoreTitle;
+
+  /// No description provided for @onboardingStoreBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload files or scan paper documents with your camera — everything lands safely in your library, stored right on this device.'**
+  String get onboardingStoreBody;
+
+  /// No description provided for @onboardingOrganizeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organize your way'**
+  String get onboardingOrganizeTitle;
+
+  /// No description provided for @onboardingOrganizeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort documents into categories you create — Finance, Health, Travel, whatever makes sense to you.'**
+  String get onboardingOrganizeBody;
+
+  /// No description provided for @onboardingFindTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find it in a snap'**
+  String get onboardingFindTitle;
+
+  /// No description provided for @onboardingFindBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, filter by category, and get reminded before anything important expires.'**
+  String get onboardingFindBody;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNext;
+
+  /// No description provided for @onboardingGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onboardingGetStarted;
 }
 
 class _AppLocalizationsDelegate
