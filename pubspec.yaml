@@ -1,5 +1,5 @@
 name: sift
-description: "A new Flutter project."
+description: "Sift — a local-only document vault. Scan, organize, and track expiration dates for your important documents, with nothing leaving your device unless you choose to send it somewhere."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
