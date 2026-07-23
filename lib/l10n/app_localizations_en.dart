@@ -355,6 +355,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get biometricUnlockReason => 'Unlock Sift';
 
   @override
+  String get forgotPinButton => 'Forgot PIN?';
+
+  @override
+  String get resetPinReason => 'Verify your device to reset your Sift PIN';
+
+  @override
+  String get resetPinFailedTitle => 'Couldn\'t verify your device';
+
+  @override
+  String get resetPinFailedMessage =>
+      'Make sure your phone has a screen lock (PIN, pattern, fingerprint, or face) set up, then try again. If it truly has none, resetting Sift\'s PIN isn\'t possible without uninstalling and reinstalling the app — which deletes all your local documents.';
+
+  @override
   String pinMinLength(num count) {
     return 'PIN must be at least $count digits';
   }
@@ -683,6 +696,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get biometricPrimerMessage =>
       'Sift can also use your device\'s fingerprint or face unlock for faster access, instead of typing your PIN every time. You can turn this off again in Settings.';
+
+  @override
+  String get resetPinPrimerTitle => 'Verify it\'s you';
+
+  @override
+  String get resetPinPrimerMessage =>
+      'To reset your PIN, Sift will ask your device to confirm it\'s you — using your fingerprint, face, or your phone\'s own screen lock. Nothing about your documents changes; you\'ll just choose a new PIN afterward.';
 
   @override
   String get notificationsPrimerTitle => 'Remind you before documents expire?';

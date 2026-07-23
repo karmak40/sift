@@ -372,6 +372,20 @@ class AppLocalizationsRu extends AppLocalizations {
   String get biometricUnlockReason => 'Разблокировать Sift';
 
   @override
+  String get forgotPinButton => 'Забыли PIN-код?';
+
+  @override
+  String get resetPinReason =>
+      'Подтвердите личность на устройстве, чтобы сбросить PIN-код Sift';
+
+  @override
+  String get resetPinFailedTitle => 'Не удалось подтвердить личность';
+
+  @override
+  String get resetPinFailedMessage =>
+      'Убедитесь, что на телефоне включена блокировка экрана (PIN-код, графический ключ, отпечаток пальца или лицо), и попробуйте снова. Если блокировки экрана нет вовсе, сбросить PIN-код Sift можно только удалив и заново установив приложение — это удалит все локальные документы.';
+
+  @override
   String pinMinLength(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -720,6 +734,13 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get biometricPrimerMessage =>
       'Sift может использовать отпечаток пальца или распознавание лица для более быстрого доступа вместо ввода PIN-кода каждый раз. Вы можете отключить это позже в настройках.';
+
+  @override
+  String get resetPinPrimerTitle => 'Подтвердите личность';
+
+  @override
+  String get resetPinPrimerMessage =>
+      'Чтобы сбросить PIN-код, Sift попросит ваше устройство подтвердить, что это вы, — с помощью отпечатка пальца, лица или экрана блокировки телефона. С вашими документами ничего не изменится — вы просто выберете новый PIN-код.';
 
   @override
   String get notificationsPrimerTitle =>

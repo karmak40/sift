@@ -624,6 +624,30 @@ abstract class AppLocalizations {
   /// **'Unlock Sift'**
   String get biometricUnlockReason;
 
+  /// No description provided for @forgotPinButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot PIN?'**
+  String get forgotPinButton;
+
+  /// No description provided for @resetPinReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your device to reset your Sift PIN'**
+  String get resetPinReason;
+
+  /// No description provided for @resetPinFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t verify your device'**
+  String get resetPinFailedTitle;
+
+  /// No description provided for @resetPinFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Make sure your phone has a screen lock (PIN, pattern, fingerprint, or face) set up, then try again. If it truly has none, resetting Sift\'s PIN isn\'t possible without uninstalling and reinstalling the app — which deletes all your local documents.'**
+  String get resetPinFailedMessage;
+
   /// No description provided for @pinMinLength.
   ///
   /// In en, this message translates to:
@@ -1151,6 +1175,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sift can also use your device\'s fingerprint or face unlock for faster access, instead of typing your PIN every time. You can turn this off again in Settings.'**
   String get biometricPrimerMessage;
+
+  /// No description provided for @resetPinPrimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify it\'s you'**
+  String get resetPinPrimerTitle;
+
+  /// No description provided for @resetPinPrimerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'To reset your PIN, Sift will ask your device to confirm it\'s you — using your fingerprint, face, or your phone\'s own screen lock. Nothing about your documents changes; you\'ll just choose a new PIN afterward.'**
+  String get resetPinPrimerMessage;
 
   /// No description provided for @notificationsPrimerTitle.
   ///

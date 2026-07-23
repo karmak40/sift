@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -22,16 +23,18 @@ import '../widgets/expiring_badge.dart';
 /// extension in `library_controller.dart`) because it needs a
 /// `BuildContext`; used by both the sort menu here and Settings' "Default
 /// sort" row.
-String sortOrderLabel(AppLocalizations l10n, SortOrder order) => switch (order) {
-  SortOrder.date => l10n.sortRecent,
-  SortOrder.name => l10n.sortNameAz,
-  SortOrder.size => l10n.sortLargest,
-};
+String sortOrderLabel(AppLocalizations l10n, SortOrder order) =>
+    switch (order) {
+      SortOrder.date => l10n.sortRecent,
+      SortOrder.name => l10n.sortNameAz,
+      SortOrder.size => l10n.sortLargest,
+    };
 
 /// The Library tab: category chips + the document grid/list.
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
 
+  @Preview(name: 'My Sample Text')
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -68,7 +71,10 @@ class LibraryScreen extends ConsumerWidget {
                             uiState.activeCategoryId == null
                                 ? l10n.allDocuments
                                 : catById[uiState.activeCategoryId]?.name ?? '',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -86,14 +92,27 @@ class LibraryScreen extends ConsumerWidget {
                     initialValue: uiState.sortOrder,
                     onSelected: controller.setSortOrder,
                     itemBuilder: (context) => SortOrder.values
-                        .map((o) => PopupMenuItem(value: o, child: Text(sortOrderLabel(l10n, o))))
+                        .map(
+                          (o) => PopupMenuItem(
+                            value: o,
+                            child: Text(sortOrderLabel(l10n, o)),
+                          ),
+                        )
                         .toList(),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.sort, size: 16, color: SiftColors.textSecondary),
+                        Icon(
+                          Icons.sort,
+                          size: 16,
+                          color: SiftColors.textSecondary,
+                        ),
                         const SizedBox(width: 2),
-                        Icon(Icons.arrow_drop_down, size: 16, color: SiftColors.textSecondary),
+                        Icon(
+                          Icons.arrow_drop_down,
+                          size: 16,
+                          color: SiftColors.textSecondary,
+                        ),
                       ],
                     ),
                   ),
@@ -117,14 +136,14 @@ class LibraryScreen extends ConsumerWidget {
                       noDocumentsAtAll: docs.isEmpty,
                     )
                   : uiState.viewMode == LibraryViewMode.list
-                      ? _DocList(
-                          docs: filtered,
-                          catById: catById,
-                          uiState: uiState,
-                          controller: controller,
-                          categories: categories,
-                        )
-                      : _DocGrid(docs: filtered, catById: catById),
+                  ? _DocList(
+                      docs: filtered,
+                      catById: catById,
+                      uiState: uiState,
+                      controller: controller,
+                      categories: categories,
+                    )
+                  : _DocGrid(docs: filtered, catById: catById),
             ),
           ],
         );
@@ -134,7 +153,11 @@ class LibraryScreen extends ConsumerWidget {
 }
 
 class _ViewToggleButton extends StatelessWidget {
-  const _ViewToggleButton({required this.icon, required this.selected, required this.onTap});
+  const _ViewToggleButton({
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
@@ -146,7 +169,11 @@ class _ViewToggleButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(6),
       child: Padding(
         padding: const EdgeInsets.all(6),
-        child: Icon(icon, size: 18, color: selected ? SiftColors.accent : SiftColors.textMuted),
+        child: Icon(
+          icon,
+          size: 18,
+          color: selected ? SiftColors.accent : SiftColors.textMuted,
+        ),
       ),
     );
   }
@@ -164,8 +191,17 @@ class _CategoryChips extends ConsumerWidget {
   final LibraryUiState uiState;
   final LibraryController controller;
 
-  Future<void> _deleteCategory(BuildContext context, WidgetRef ref, Category cat) async {
-    final deleted = await deleteCategoryWithConfirm(context, ref, category: cat, allDocuments: docs);
+  Future<void> _deleteCategory(
+    BuildContext context,
+    WidgetRef ref,
+    Category cat,
+  ) async {
+    final deleted = await deleteCategoryWithConfirm(
+      context,
+      ref,
+      category: cat,
+      allDocuments: docs,
+    );
     if (deleted && uiState.activeCategoryId == cat.id) {
       controller.selectAllDocuments();
     }
@@ -227,7 +263,9 @@ class _Chip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? SiftColors.accent : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? SiftColors.accent : SiftColors.border),
+          border: Border.all(
+            color: selected ? SiftColors.accent : SiftColors.border,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -252,10 +290,7 @@ class _Chip extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({
-    required this.onClear,
-    required this.noDocumentsAtAll,
-  });
+  const _EmptyState({required this.onClear, required this.noDocumentsAtAll});
 
   final VoidCallback onClear;
   final bool noDocumentsAtAll;
@@ -279,7 +314,10 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(l10n.emptyNoMatch, style: TextStyle(color: SiftColors.textMuted, fontSize: 13)),
+          Text(
+            l10n.emptyNoMatch,
+            style: TextStyle(color: SiftColors.textMuted, fontSize: 13),
+          ),
           TextButton(onPressed: onClear, child: Text(l10n.clearFilters)),
         ],
       ),
@@ -308,7 +346,8 @@ class _DocGrid extends StatelessWidget {
         final cat = catById[doc.categoryId];
         return InkWell(
           borderRadius: BorderRadius.circular(10),
-          onTap: () => showDocumentDetailSheet(context, document: doc, category: cat),
+          onTap: () =>
+              showDocumentDetailSheet(context, document: doc, category: cat),
           child: Container(
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
@@ -332,10 +371,17 @@ class _DocGrid extends StatelessWidget {
                             doc.name,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, height: 1.25),
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              height: 1.25,
+                            ),
                           ),
                           const SizedBox(height: 2),
-                          Text('${doc.sizeLabel} · ${_shortDate(doc.addedAt)}', style: monoStyle(fontSize: 10.5)),
+                          Text(
+                            '${doc.sizeLabel} · ${_shortDate(doc.addedAt)}',
+                            style: monoStyle(fontSize: 10.5),
+                          ),
                         ],
                       ),
                     ),
@@ -348,7 +394,10 @@ class _DocGrid extends StatelessWidget {
                   children: [
                     if (cat != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: hueColorAlpha(cat.hue, 0.13),
                           borderRadius: BorderRadius.circular(20),
@@ -358,12 +407,19 @@ class _DocGrid extends StatelessWidget {
                           children: [
                             CategoryDot(hue: cat.hue, size: 5),
                             const SizedBox(width: 4),
-                            Text(cat.name, style: TextStyle(fontSize: 10.5, color: hueColor(cat.hue, lightness: 0.4))),
+                            Text(
+                              cat.name,
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                color: hueColor(cat.hue, lightness: 0.4),
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     if (doc.hasAi) const AiBadge(),
-                    if (doc.isExpiringSoon(DateTime.now())) const ExpiringBadge(),
+                    if (doc.isExpiringSoon(DateTime.now()))
+                      const ExpiringBadge(),
                   ],
                 ),
               ],
@@ -392,7 +448,9 @@ class _DocList extends ConsumerWidget {
 
   Future<void> _deleteSelected(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
-    final selected = docs.where((d) => uiState.selectedIds.contains(d.id)).toList();
+    final selected = docs
+        .where((d) => uiState.selectedIds.contains(d.id))
+        .toList();
     if (selected.isEmpty) return;
     final confirmed = await showConfirmDialog(
       context,
@@ -427,23 +485,47 @@ class _DocList extends ConsumerWidget {
               child: ListTile(
                 onTap: hasSelection
                     ? () => controller.toggleSelection(doc.id)
-                    : () => showDocumentDetailSheet(context, document: doc, category: cat),
+                    : () => showDocumentDetailSheet(
+                        context,
+                        document: doc,
+                        category: cat,
+                      ),
                 onLongPress: () => controller.toggleSelection(doc.id),
                 leading: hasSelection
-                    ? Checkbox(value: selected, onChanged: (_) => controller.toggleSelection(doc.id))
+                    ? Checkbox(
+                        value: selected,
+                        onChanged: (_) => controller.toggleSelection(doc.id),
+                      )
                     : DocIconTile(type: doc.type, width: 32, height: 38),
-                title: Text(doc.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500)),
+                title: Text(
+                  doc.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 subtitle: Row(
                   children: [
                     if (cat != null) ...[
                       CategoryDot(hue: cat.hue, size: 5),
                       const SizedBox(width: 5),
-                      Text(cat.name, style: TextStyle(fontSize: 11, color: hueColor(cat.hue, lightness: 0.4))),
+                      Text(
+                        cat.name,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: hueColor(cat.hue, lightness: 0.4),
+                        ),
+                      ),
                       const SizedBox(width: 8),
                     ],
                     Text(doc.sizeLabel, style: monoStyle(fontSize: 10.5)),
                     const SizedBox(width: 6),
-                    Text(_shortDate(doc.addedAt), style: monoStyle(fontSize: 10.5)),
+                    Text(
+                      _shortDate(doc.addedAt),
+                      style: monoStyle(fontSize: 10.5),
+                    ),
                   ],
                 ),
                 trailing: (doc.hasAi || doc.isExpiringSoon(DateTime.now()))
@@ -475,7 +557,13 @@ class _DocList extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Text(l10n.selectedCount(uiState.selectedIds.length), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  Text(
+                    l10n.selectedCount(uiState.selectedIds.length),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(width: 14),
                   TextButton.icon(
                     onPressed: () => showMoveToSheet(
@@ -489,11 +577,21 @@ class _DocList extends ConsumerWidget {
                   ),
                   TextButton.icon(
                     onPressed: () => _deleteSelected(context, ref),
-                    icon: Icon(Icons.delete_outline, size: 16, color: SiftColors.danger),
-                    label: Text(l10n.delete, style: TextStyle(color: SiftColors.danger)),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: 16,
+                      color: SiftColors.danger,
+                    ),
+                    label: Text(
+                      l10n.delete,
+                      style: TextStyle(color: SiftColors.danger),
+                    ),
                   ),
                   const Spacer(),
-                  TextButton(onPressed: controller.clearSelection, child: Text(l10n.clear)),
+                  TextButton(
+                    onPressed: controller.clearSelection,
+                    child: Text(l10n.clear),
+                  ),
                 ],
               ),
             ),

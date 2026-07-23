@@ -42,6 +42,7 @@
 <li>The actual files you upload or scan are stored on your device&#x27;s own filesystem (or, in the web preview build, as part of that same local database).</li>
 <li>Your PIN, if you turn on App Lock, is stored locally as a salted hash — never as plain text, and never anywhere but your device.</li>
 <li>Biometric unlock (Face ID, Touch ID, Windows Hello, Android fingerprint/face unlock) is handled entirely by your device&#x27;s operating system. Sift asks the OS &quot;did this person pass your biometric check?&quot; and gets a yes/no answer back — it never receives, stores, or has access to any biometric data itself.</li>
+<li>Forgot your PIN? The same &quot;ask the OS, get a yes/no&quot; pattern is used to let you set a new one: Sift asks your device to confirm it&#x27;s you, using either biometric or your device&#x27;s own screen lock (PIN, pattern, or password) — again never seeing or storing any of that. Your PIN is just a lock-screen gate, not an encryption key for your documents, so resetting it doesn&#x27;t touch or re-encrypt anything already stored.</li>
 </ul>
 <p>None of this is transmitted to Sift&#x27;s developer, an analytics service, or any third party. Sift doesn&#x27;t use analytics, crash reporting, or advertising SDKs of any kind.</p>
 <h2>Permissions Sift asks for, and why</h2>

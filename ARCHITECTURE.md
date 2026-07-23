@@ -522,6 +522,22 @@ only thing that turns it on, per how this was asked for.
   it's what `setPin()` gets called from. Turning it off doesn't require
   re-entering the PIN: Settings itself is only reachable after the gate
   already let you in, so there's nothing extra to verify.
+- **"Forgot PIN?"** on the lock screen calls
+  `BiometricService.authenticateWithDeviceCredential()` — the same
+  `local_auth` call as normal biometric unlock, except with
+  `biometricOnly: false`, so it also accepts the device's own PIN/pattern/
+  password as proof, not just a fingerprint/face match. Since the PIN is
+  a hash-checked UI gate rather than something documents are encrypted
+  with (see `AppLockService` above), there's no data at risk in letting
+  someone reset it once they've proven they can unlock the phone itself —
+  that's at least as strong a bar as the PIN it replaces, since anyone who
+  clears the device's own lock screen already has full access to
+  everything on it. On success this reuses `pin_setup_sheet.dart` again
+  (no separate "new PIN" UI) and unlocks the session immediately. If
+  device-credential auth fails — most commonly because the phone has no
+  screen lock configured at all — a dialog says so plainly and names the
+  actual last resort: uninstalling and reinstalling Sift, which wipes all
+  local data. This is documented the same way in `PRIVACY.md`.
 
 **Platform setup this needed**, beyond the Dart code: Android's
 `MainActivity` had to change from `FlutterActivity` to

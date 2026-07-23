@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/app_lock_providers.dart';
 import '../theme.dart';
 import '../widgets/permission_primer.dart';
+import 'pin_setup_sheet.dart';
 
 /// Full-screen PIN/biometric prompt shown by `AppLockGate` whenever App Lock
 /// is on and the app hasn't been unlocked yet this session.
@@ -56,6 +57,46 @@ class _LockScreenState extends ConsumerState<LockScreen> {
     if (!primed || !mounted) return;
     final ok = await ref.read(biometricServiceProvider).authenticate(reason: l10n.biometricUnlockReason);
     if (ok && mounted) {
+      ref.read(isUnlockedProvider.notifier).state = true;
+    }
+  }
+
+  /// Lets someone who forgot their PIN choose a new one — gated behind
+  /// proving they can unlock the device itself (biometric, or the device's
+  /// own PIN/pattern/password via [BiometricService.authenticateWithDeviceCredential]).
+  /// Sift's PIN is a UI gate, not an encryption key (see `AppLockService`),
+  /// so this doesn't put any documents at risk — it only confirms whoever's
+  /// resetting it actually owns the phone, which is at least as strong a
+  /// bar as the PIN it's replacing.
+  Future<void> _forgotPin() async {
+    final l10n = AppLocalizations.of(context)!;
+    final primed = await ensurePermissionPrimed(
+      context,
+      prefsKey: biometricPrimedKey,
+      icon: Icons.fingerprint,
+      title: l10n.resetPinPrimerTitle,
+      message: l10n.resetPinPrimerMessage,
+    );
+    if (!primed || !mounted) return;
+    final verified = await ref
+        .read(biometricServiceProvider)
+        .authenticateWithDeviceCredential(reason: l10n.resetPinReason);
+    if (!mounted) return;
+    if (!verified) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text(l10n.resetPinFailedTitle),
+          content: Text(l10n.resetPinFailedMessage),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.gotIt)),
+          ],
+        ),
+      );
+      return;
+    }
+    final saved = await showPinSetupSheet(context);
+    if (saved && mounted) {
       ref.read(isUnlockedProvider.notifier).state = true;
     }
   }
@@ -169,6 +210,11 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                     label: Text(l10n.useBiometricUnlock),
                   ),
                 ],
+                const SizedBox(height: 4),
+                TextButton(
+                  onPressed: _forgotPin,
+                  child: Text(l10n.forgotPinButton),
+                ),
               ],
             ),
           ),

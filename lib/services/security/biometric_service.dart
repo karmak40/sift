@@ -32,4 +32,21 @@ class BiometricService {
       return false;
     }
   }
+
+  /// Like [authenticate], but falls back to the device's own PIN/pattern/
+  /// password if biometric isn't available — used only for "Forgot PIN?"
+  /// recovery (see `LockScreen`), never for the normal unlock button. Sift's
+  /// own PIN is just a UI gate, not an encryption key, so proving ownership
+  /// of the device this way is enough to let someone set a fresh one.
+  Future<bool> authenticateWithDeviceCredential({required String reason}) async {
+    if (kIsWeb) return false;
+    try {
+      return await _auth.authenticate(
+        localizedReason: reason,
+        options: const AuthenticationOptions(biometricOnly: false, stickyAuth: true),
+      );
+    } catch (_) {
+      return false;
+    }
+  }
 }

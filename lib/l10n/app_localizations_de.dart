@@ -356,6 +356,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get biometricUnlockReason => 'Sift entsperren';
 
   @override
+  String get forgotPinButton => 'PIN vergessen?';
+
+  @override
+  String get resetPinReason =>
+      'Bestätige dein Gerät, um deine Sift-PIN zurückzusetzen';
+
+  @override
+  String get resetPinFailedTitle => 'Gerät konnte nicht bestätigt werden';
+
+  @override
+  String get resetPinFailedMessage =>
+      'Stelle sicher, dass dein Smartphone über eine Displaysperre verfügt (PIN, Muster, Fingerabdruck oder Gesicht), und versuche es erneut. Falls wirklich keine Displaysperre eingerichtet ist, lässt sich die Sift-PIN nur durch Deinstallieren und Neuinstallieren der App zurücksetzen — dabei werden alle lokalen Dokumente gelöscht.';
+
+  @override
   String pinMinLength(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -693,6 +707,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get biometricPrimerMessage =>
       'Sift kann auch den Fingerabdruck- oder Gesichtsscan deines Geräts für schnelleren Zugriff nutzen, statt jedes Mal die PIN einzugeben. Du kannst dies später in den Einstellungen wieder deaktivieren.';
+
+  @override
+  String get resetPinPrimerTitle => 'Bestätige, dass du es bist';
+
+  @override
+  String get resetPinPrimerMessage =>
+      'Um deine PIN zurückzusetzen, bittet Sift dein Gerät zu bestätigen, dass du es bist — per Fingerabdruck, Gesichtserkennung oder der Displaysperre deines Smartphones. An deinen Dokumenten ändert sich nichts — du wählst anschließend einfach eine neue PIN.';
 
   @override
   String get notificationsPrimerTitle => 'Vor Ablauf von Dokumenten erinnern?';

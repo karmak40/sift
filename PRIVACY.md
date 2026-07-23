@@ -27,6 +27,12 @@ in a local database and local files on your own device.
   system. Sift asks the OS "did this person pass your biometric check?"
   and gets a yes/no answer back — it never receives, stores, or has
   access to any biometric data itself.
+- **Forgot your PIN?** The same "ask the OS, get a yes/no" pattern is used
+  to let you set a new one: Sift asks your device to confirm it's you,
+  using either biometric or your device's own screen lock (PIN, pattern,
+  or password) — again never seeing or storing any of that. Your PIN is
+  just a lock-screen gate, not an encryption key for your documents, so
+  resetting it doesn't touch or re-encrypt anything already stored.
 
 None of this is transmitted to Sift's developer, an analytics service, or
 any third party. Sift doesn't use analytics, crash reporting, or
