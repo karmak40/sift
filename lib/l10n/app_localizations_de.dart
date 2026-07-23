@@ -594,4 +594,71 @@ class AppLocalizationsDe extends AppLocalizations {
   String disabledForNowSuffix(String subtitle) {
     return '$subtitle · derzeit deaktiviert';
   }
+
+  @override
+  String get backupSectionLabel => 'Sicherung';
+
+  @override
+  String get backupIntro =>
+      'Alles bleibt auf diesem Gerät. Sichere es in einer Datei, die du selbst kontrollierst, und stelle sie jederzeit wieder her — auch auf einem anderen Telefon.';
+
+  @override
+  String get backUpNowTitle => 'Jetzt sichern';
+
+  @override
+  String get backUpNowSubtitle =>
+      'Alle Dokumente und Kategorien in einer Datei speichern';
+
+  @override
+  String get restoreTitle => 'Aus Sicherung wiederherstellen…';
+
+  @override
+  String get restoreSubtitle => 'Alles durch eine frühere Sicherung ersetzen';
+
+  @override
+  String get saveBackupDialogTitle => 'Sift-Sicherung speichern';
+
+  @override
+  String get backupSavedSnackbar => 'Sicherung gespeichert';
+
+  @override
+  String backupFailedSnackbar(String error) {
+    return 'Sicherung konnte nicht erstellt werden: $error';
+  }
+
+  @override
+  String get chooseBackupFileDialogTitle => 'Sift-Sicherungsdatei auswählen';
+
+  @override
+  String get restoreConfirmTitle => 'Aus Sicherung wiederherstellen?';
+
+  @override
+  String get restoreConfirmMessage =>
+      'Dadurch werden alle aktuell in Sift vorhandenen Dokumente und Kategorien durch den Inhalt dieser Sicherungsdatei ersetzt. Dies kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get restoreConfirmButton => 'Wiederherstellen';
+
+  @override
+  String get restoreCompleteTitle => 'Wiederherstellung abgeschlossen';
+
+  @override
+  String get restoreCompleteMessage =>
+      'Schließe Sift und öffne es erneut, um deine wiederhergestellten Dokumente zu sehen.';
+
+  @override
+  String get gotIt => 'Verstanden';
+
+  @override
+  String restoreFailedSnackbar(String error) {
+    return 'Sicherung konnte nicht wiederhergestellt werden: $error';
+  }
+
+  @override
+  String get invalidBackupFile =>
+      'Das sieht nicht wie eine Sift-Sicherungsdatei aus.';
+
+  @override
+  String get backupTooNew =>
+      'Diese Sicherung wurde mit einer neueren Version von Sift erstellt und kann hier nicht wiederhergestellt werden.';
 }

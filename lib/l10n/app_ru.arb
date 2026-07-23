@@ -156,5 +156,25 @@
   "reminderChannelName": "Напоминания об истечении срока",
   "reminderChannelDescription": "Напоминания для документов с установленной датой истечения",
   "expiringBadge": "Истекает",
-  "disabledForNowSuffix": "{subtitle} · пока отключено"
+  "disabledForNowSuffix": "{subtitle} · пока отключено",
+
+  "backupSectionLabel": "Резервное копирование",
+  "backupIntro": "Всё остаётся на этом устройстве. Сделайте резервную копию в файл, который вы контролируете, и восстановите её в любой момент — даже на другом телефоне.",
+  "backUpNowTitle": "Создать резервную копию",
+  "backUpNowSubtitle": "Сохранить все документы и категории в один файл",
+  "restoreTitle": "Восстановить из резервной копии…",
+  "restoreSubtitle": "Заменить всё содержимым предыдущей копии",
+  "saveBackupDialogTitle": "Сохранить резервную копию Sift",
+  "backupSavedSnackbar": "Резервная копия сохранена",
+  "backupFailedSnackbar": "Не удалось создать резервную копию: {error}",
+  "chooseBackupFileDialogTitle": "Выберите файл резервной копии Sift",
+  "restoreConfirmTitle": "Восстановить из резервной копии?",
+  "restoreConfirmMessage": "Это заменит все документы и категории, которые сейчас есть в Sift, содержимым этого файла резервной копии. Это действие нельзя отменить.",
+  "restoreConfirmButton": "Восстановить",
+  "restoreCompleteTitle": "Восстановление завершено",
+  "restoreCompleteMessage": "Закройте и снова откройте Sift, чтобы увидеть восстановленные документы.",
+  "gotIt": "Понятно",
+  "restoreFailedSnackbar": "Не удалось восстановить резервную копию: {error}",
+  "invalidBackupFile": "Это не похоже на файл резервной копии Sift.",
+  "backupTooNew": "Эта резервная копия создана более новой версией Sift и не может быть восстановлена здесь."
 }

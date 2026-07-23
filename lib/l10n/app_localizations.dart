@@ -977,6 +977,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{subtitle} · disabled for now'**
   String disabledForNowSuffix(String subtitle);
+
+  /// No description provided for @backupSectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get backupSectionLabel;
+
+  /// No description provided for @backupIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything stays on this device. Back up to a file you control, and restore it any time — even on a different phone.'**
+  String get backupIntro;
+
+  /// No description provided for @backUpNowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get backUpNowTitle;
+
+  /// No description provided for @backUpNowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all documents and categories to a single file'**
+  String get backUpNowSubtitle;
+
+  /// No description provided for @restoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from backup…'**
+  String get restoreTitle;
+
+  /// No description provided for @restoreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace everything with a previous backup'**
+  String get restoreSubtitle;
+
+  /// No description provided for @saveBackupDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Sift backup'**
+  String get saveBackupDialogTitle;
+
+  /// No description provided for @backupSavedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved'**
+  String get backupSavedSnackbar;
+
+  /// No description provided for @backupFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create backup: {error}'**
+  String backupFailedSnackbar(String error);
+
+  /// No description provided for @chooseBackupFileDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a Sift backup file'**
+  String get chooseBackupFileDialogTitle;
+
+  /// No description provided for @restoreConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from backup?'**
+  String get restoreConfirmTitle;
+
+  /// No description provided for @restoreConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This replaces every document and category currently in Sift with what\'s in this backup file. This can\'t be undone.'**
+  String get restoreConfirmMessage;
+
+  /// No description provided for @restoreConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreConfirmButton;
+
+  /// No description provided for @restoreCompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore complete'**
+  String get restoreCompleteTitle;
+
+  /// No description provided for @restoreCompleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Close and reopen Sift to see your restored documents.'**
+  String get restoreCompleteMessage;
+
+  /// No description provided for @gotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get gotIt;
+
+  /// No description provided for @restoreFailedSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t restore backup: {error}'**
+  String restoreFailedSnackbar(String error);
+
+  /// No description provided for @invalidBackupFile.
+  ///
+  /// In en, this message translates to:
+  /// **'This doesn\'t look like a Sift backup file.'**
+  String get invalidBackupFile;
+
+  /// No description provided for @backupTooNew.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup was made with a newer version of Sift and can\'t be restored here.'**
+  String get backupTooNew;
 }
 
 class _AppLocalizationsDelegate

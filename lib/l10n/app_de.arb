@@ -156,5 +156,25 @@
   "reminderChannelName": "Ablauferinnerungen",
   "reminderChannelDescription": "Erinnerungen für Dokumente mit einem festgelegten Ablaufdatum",
   "expiringBadge": "Läuft ab",
-  "disabledForNowSuffix": "{subtitle} · derzeit deaktiviert"
+  "disabledForNowSuffix": "{subtitle} · derzeit deaktiviert",
+
+  "backupSectionLabel": "Sicherung",
+  "backupIntro": "Alles bleibt auf diesem Gerät. Sichere es in einer Datei, die du selbst kontrollierst, und stelle sie jederzeit wieder her — auch auf einem anderen Telefon.",
+  "backUpNowTitle": "Jetzt sichern",
+  "backUpNowSubtitle": "Alle Dokumente und Kategorien in einer Datei speichern",
+  "restoreTitle": "Aus Sicherung wiederherstellen…",
+  "restoreSubtitle": "Alles durch eine frühere Sicherung ersetzen",
+  "saveBackupDialogTitle": "Sift-Sicherung speichern",
+  "backupSavedSnackbar": "Sicherung gespeichert",
+  "backupFailedSnackbar": "Sicherung konnte nicht erstellt werden: {error}",
+  "chooseBackupFileDialogTitle": "Sift-Sicherungsdatei auswählen",
+  "restoreConfirmTitle": "Aus Sicherung wiederherstellen?",
+  "restoreConfirmMessage": "Dadurch werden alle aktuell in Sift vorhandenen Dokumente und Kategorien durch den Inhalt dieser Sicherungsdatei ersetzt. Dies kann nicht rückgängig gemacht werden.",
+  "restoreConfirmButton": "Wiederherstellen",
+  "restoreCompleteTitle": "Wiederherstellung abgeschlossen",
+  "restoreCompleteMessage": "Schließe Sift und öffne es erneut, um deine wiederhergestellten Dokumente zu sehen.",
+  "gotIt": "Verstanden",
+  "restoreFailedSnackbar": "Sicherung konnte nicht wiederhergestellt werden: {error}",
+  "invalidBackupFile": "Das sieht nicht wie eine Sift-Sicherungsdatei aus.",
+  "backupTooNew": "Diese Sicherung wurde mit einer neueren Version von Sift erstellt und kann hier nicht wiederhergestellt werden."
 }

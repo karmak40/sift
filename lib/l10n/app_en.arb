@@ -183,5 +183,27 @@
   "reminderChannelDescription": "Reminders for documents you set an expiration date on",
   "expiringBadge": "Expiring",
   "disabledForNowSuffix": "{subtitle} · disabled for now",
-  "@disabledForNowSuffix": { "placeholders": { "subtitle": { "type": "String" } } }
+  "@disabledForNowSuffix": { "placeholders": { "subtitle": { "type": "String" } } },
+
+  "backupSectionLabel": "Backup",
+  "backupIntro": "Everything stays on this device. Back up to a file you control, and restore it any time — even on a different phone.",
+  "backUpNowTitle": "Back up now",
+  "backUpNowSubtitle": "Save all documents and categories to a single file",
+  "restoreTitle": "Restore from backup…",
+  "restoreSubtitle": "Replace everything with a previous backup",
+  "saveBackupDialogTitle": "Save Sift backup",
+  "backupSavedSnackbar": "Backup saved",
+  "backupFailedSnackbar": "Couldn't create backup: {error}",
+  "@backupFailedSnackbar": { "placeholders": { "error": { "type": "String" } } },
+  "chooseBackupFileDialogTitle": "Choose a Sift backup file",
+  "restoreConfirmTitle": "Restore from backup?",
+  "restoreConfirmMessage": "This replaces every document and category currently in Sift with what's in this backup file. This can't be undone.",
+  "restoreConfirmButton": "Restore",
+  "restoreCompleteTitle": "Restore complete",
+  "restoreCompleteMessage": "Close and reopen Sift to see your restored documents.",
+  "gotIt": "Got it",
+  "restoreFailedSnackbar": "Couldn't restore backup: {error}",
+  "@restoreFailedSnackbar": { "placeholders": { "error": { "type": "String" } } },
+  "invalidBackupFile": "This doesn't look like a Sift backup file.",
+  "backupTooNew": "This backup was made with a newer version of Sift and can't be restored here."
 }

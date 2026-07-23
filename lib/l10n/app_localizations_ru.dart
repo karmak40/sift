@@ -621,4 +621,71 @@ class AppLocalizationsRu extends AppLocalizations {
   String disabledForNowSuffix(String subtitle) {
     return '$subtitle · пока отключено';
   }
+
+  @override
+  String get backupSectionLabel => 'Резервное копирование';
+
+  @override
+  String get backupIntro =>
+      'Всё остаётся на этом устройстве. Сделайте резервную копию в файл, который вы контролируете, и восстановите её в любой момент — даже на другом телефоне.';
+
+  @override
+  String get backUpNowTitle => 'Создать резервную копию';
+
+  @override
+  String get backUpNowSubtitle =>
+      'Сохранить все документы и категории в один файл';
+
+  @override
+  String get restoreTitle => 'Восстановить из резервной копии…';
+
+  @override
+  String get restoreSubtitle => 'Заменить всё содержимым предыдущей копии';
+
+  @override
+  String get saveBackupDialogTitle => 'Сохранить резервную копию Sift';
+
+  @override
+  String get backupSavedSnackbar => 'Резервная копия сохранена';
+
+  @override
+  String backupFailedSnackbar(String error) {
+    return 'Не удалось создать резервную копию: $error';
+  }
+
+  @override
+  String get chooseBackupFileDialogTitle =>
+      'Выберите файл резервной копии Sift';
+
+  @override
+  String get restoreConfirmTitle => 'Восстановить из резервной копии?';
+
+  @override
+  String get restoreConfirmMessage =>
+      'Это заменит все документы и категории, которые сейчас есть в Sift, содержимым этого файла резервной копии. Это действие нельзя отменить.';
+
+  @override
+  String get restoreConfirmButton => 'Восстановить';
+
+  @override
+  String get restoreCompleteTitle => 'Восстановление завершено';
+
+  @override
+  String get restoreCompleteMessage =>
+      'Закройте и снова откройте Sift, чтобы увидеть восстановленные документы.';
+
+  @override
+  String get gotIt => 'Понятно';
+
+  @override
+  String restoreFailedSnackbar(String error) {
+    return 'Не удалось восстановить резервную копию: $error';
+  }
+
+  @override
+  String get invalidBackupFile => 'Это не похоже на файл резервной копии Sift.';
+
+  @override
+  String get backupTooNew =>
+      'Эта резервная копия создана более новой версией Sift и не может быть восстановлена здесь.';
 }

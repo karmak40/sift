@@ -75,6 +75,8 @@ lib/
     scan/
       pdf_builder.dart           — assembles page images into a PDF (pure Dart, tested)
       document_scanner_service.dart — native camera scan -> PDF (mobile only)
+    backup/
+      backup_service.dart        — export/import everything as one local zip file (see §14)
     current_localizations.dart  — AppLocalizations lookup for non-widget code (see §13)
   providers/
     core_providers.dart        — wires up DB, repositories, file storage, AI, reminders, scanner
@@ -726,7 +728,71 @@ key from `app_en.arb` translated, add the language's endonym to
 
 ---
 
-## 14. How to add a common kind of feature
+## 14. Backup & Restore
+
+Sift is local-only by design — no account, no server, no sync. That's a
+selling point ("your documents never leave this device unless you choose
+to send them somewhere"), but it also means losing the phone or
+reinstalling the app loses every document. `BackupService`
+(`lib/services/backup/backup_service.dart`) closes that gap with a
+manual, fully local export/import — no network involved either
+direction.
+
+- **What's in a backup**: a single zip containing `manifest.json` (a
+  `formatVersion` int + a creation timestamp), `sift_db.sqlite` (the
+  entire Drift database — categories, documents, expiration dates, AI
+  summaries), and a `files/` folder holding every uploaded file exactly
+  as stored on disk.
+- **Taking the snapshot safely**: `createBackupArchive()` doesn't copy
+  the live `.sqlite` file directly — that could race a pending write or
+  miss data still sitting in a WAL file. It runs SQLite's own
+  `VACUUM INTO` instead, which produces a single-file, guaranteed-consistent
+  snapshot safe to take while the database is open and in active use.
+- **Restoring is a full replace, not a merge**: `restoreFromArchive()`
+  validates the manifest (rejecting anything that isn't a Sift backup, or
+  one with a `formatVersion` newer than this app understands), closes
+  the live `AppDatabase` connection, overwrites the `.sqlite` file (and
+  clears any `-wal`/`-shm` sidecar files left behind by the connection it
+  just closed), then wipes and repopulates the files folder. Riverpod's
+  provider tree is deliberately **not** hot-invalidated afterward — every
+  provider that was watching the now-closed connection would need to be
+  torn down and rebuilt in exactly the right order to avoid a stream
+  erroring out mid-flight, and getting that wrong risks silent
+  corruption. Instead, `settings_screen.dart` shows a non-dismissible
+  "close and reopen Sift" dialog (wrapped in `PopScope(canPop: false)` so
+  the Android back button can't bypass it either) — a real process
+  restart is simpler and safer than trying to hot-swap a live database
+  connection.
+- **Where the export goes**: Android/iOS hand the zip to the OS share
+  sheet (`share_plus`, same mechanism as sharing a single document from
+  the detail view) so the user saves it to Files/Drive, emails it to
+  themselves, etc. Windows uses `file_picker`'s `saveFile` dialog instead
+  — there's no equivalent OS share sheet worth relying on there.
+  Restoring uses `file_picker`'s `pickFiles` on every platform.
+- **Web is out of scope**: `BackupService` is built directly on
+  `IoFileStorageService`, which needs a real filesystem. Web already
+  stores uploaded files as BLOB rows inside the same database file
+  `VACUUM INTO` would capture, so nothing is silently lost there — a
+  Web-specific export/import just isn't built. Gated via
+  `_canUseBackup => !kIsWeb` in `settings_screen.dart`.
+- **Non-widget error messages**: like `io_file_storage_service.dart`,
+  `seed_data.dart`, and `reminder_service.dart` before it,
+  `BackupService` has no `BuildContext` to call `AppLocalizations.of()`
+  with, so its `BackupFormatException` messages go through
+  `currentLocalizations()` (see §13) instead.
+- **Tests**: `test/backup_service_test.dart` round-trips a real
+  `AppDatabase()` (not a fake — see the test file's comment on why this
+  project's other tests avoid that, and why it's safe here) through a
+  full backup → additional writes → restore → fresh-connection-reread
+  cycle, asserting the additional post-backup writes are gone (proving
+  restore replaces rather than merges) and that both the database rows
+  and the actual file bytes survive intact. Two more tests cover
+  rejecting a non-backup file and rejecting a backup with a too-new
+  `formatVersion`.
+
+---
+
+## 15. How to add a common kind of feature
 
 **Add a new field to Document** (e.g. a "starred" flag):
 1. Add the column to the `Documents` table in `database.dart`, bump
@@ -756,7 +822,7 @@ from repositories via `ref.read(...RepositoryProvider)`, don't reach into
 
 ---
 
-## 15. Running and testing
+## 16. Running and testing
 
 ```bash
 flutter pub get

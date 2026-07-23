@@ -621,4 +621,71 @@ class AppLocalizationsUk extends AppLocalizations {
   String disabledForNowSuffix(String subtitle) {
     return '$subtitle · поки вимкнено';
   }
+
+  @override
+  String get backupSectionLabel => 'Резервне копіювання';
+
+  @override
+  String get backupIntro =>
+      'Усе залишається на цьому пристрої. Створіть резервну копію у файл, який контролюєте ви, і відновіть її будь-коли — навіть на іншому телефоні.';
+
+  @override
+  String get backUpNowTitle => 'Створити резервну копію';
+
+  @override
+  String get backUpNowSubtitle =>
+      'Зберегти всі документи й категорії в один файл';
+
+  @override
+  String get restoreTitle => 'Відновити з резервної копії…';
+
+  @override
+  String get restoreSubtitle => 'Замінити все вмістом попередньої копії';
+
+  @override
+  String get saveBackupDialogTitle => 'Зберегти резервну копію Sift';
+
+  @override
+  String get backupSavedSnackbar => 'Резервну копію збережено';
+
+  @override
+  String backupFailedSnackbar(String error) {
+    return 'Не вдалося створити резервну копію: $error';
+  }
+
+  @override
+  String get chooseBackupFileDialogTitle =>
+      'Виберіть файл резервної копії Sift';
+
+  @override
+  String get restoreConfirmTitle => 'Відновити з резервної копії?';
+
+  @override
+  String get restoreConfirmMessage =>
+      'Це замінить усі документи й категорії, які зараз є в Sift, вмістом цього файлу резервної копії. Це неможливо скасувати.';
+
+  @override
+  String get restoreConfirmButton => 'Відновити';
+
+  @override
+  String get restoreCompleteTitle => 'Відновлення завершено';
+
+  @override
+  String get restoreCompleteMessage =>
+      'Закрийте і знову відкрийте Sift, щоб побачити відновлені документи.';
+
+  @override
+  String get gotIt => 'Зрозуміло';
+
+  @override
+  String restoreFailedSnackbar(String error) {
+    return 'Не вдалося відновити резервну копію: $error';
+  }
+
+  @override
+  String get invalidBackupFile => 'Це не схоже на файл резервної копії Sift.';
+
+  @override
+  String get backupTooNew =>
+      'Цю резервну копію створено новішою версією Sift, і її не можна відновити тут.';
 }

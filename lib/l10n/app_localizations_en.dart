@@ -585,4 +585,70 @@ class AppLocalizationsEn extends AppLocalizations {
   String disabledForNowSuffix(String subtitle) {
     return '$subtitle · disabled for now';
   }
+
+  @override
+  String get backupSectionLabel => 'Backup';
+
+  @override
+  String get backupIntro =>
+      'Everything stays on this device. Back up to a file you control, and restore it any time — even on a different phone.';
+
+  @override
+  String get backUpNowTitle => 'Back up now';
+
+  @override
+  String get backUpNowSubtitle =>
+      'Save all documents and categories to a single file';
+
+  @override
+  String get restoreTitle => 'Restore from backup…';
+
+  @override
+  String get restoreSubtitle => 'Replace everything with a previous backup';
+
+  @override
+  String get saveBackupDialogTitle => 'Save Sift backup';
+
+  @override
+  String get backupSavedSnackbar => 'Backup saved';
+
+  @override
+  String backupFailedSnackbar(String error) {
+    return 'Couldn\'t create backup: $error';
+  }
+
+  @override
+  String get chooseBackupFileDialogTitle => 'Choose a Sift backup file';
+
+  @override
+  String get restoreConfirmTitle => 'Restore from backup?';
+
+  @override
+  String get restoreConfirmMessage =>
+      'This replaces every document and category currently in Sift with what\'s in this backup file. This can\'t be undone.';
+
+  @override
+  String get restoreConfirmButton => 'Restore';
+
+  @override
+  String get restoreCompleteTitle => 'Restore complete';
+
+  @override
+  String get restoreCompleteMessage =>
+      'Close and reopen Sift to see your restored documents.';
+
+  @override
+  String get gotIt => 'Got it';
+
+  @override
+  String restoreFailedSnackbar(String error) {
+    return 'Couldn\'t restore backup: $error';
+  }
+
+  @override
+  String get invalidBackupFile => 'This doesn\'t look like a Sift backup file.';
+
+  @override
+  String get backupTooNew =>
+      'This backup was made with a newer version of Sift and can\'t be restored here.';
 }
