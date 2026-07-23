@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../services/current_localizations.dart';
 import 'file_storage_service.dart';
 import 'storage_location_service.dart';
 
@@ -77,12 +78,12 @@ class IoFileStorageService implements FileStorageService {
   @override
   Future<String?> openExternally(String storageKey) async {
     if (storageKey.trim().isEmpty) {
-      return 'This document has no file attached to it.';
+      return currentLocalizations().noFileAttached;
     }
     final dir = await _filesDir();
     final file = File(p.join(dir.path, storageKey));
     if (!await file.exists()) {
-      return 'The file is missing from disk — it may have been moved or deleted outside the app.';
+      return currentLocalizations().fileMissingFromDiskDetailed;
     }
     final result = await OpenFilex.open(file.path);
     return result.type == ResultType.done ? null : result.message;

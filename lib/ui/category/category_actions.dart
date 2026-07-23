@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/category.dart';
 import '../../data/models/document.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/core_providers.dart';
 import '../widgets/confirm_dialog.dart';
 
@@ -17,14 +18,14 @@ Future<bool> deleteCategoryWithConfirm(
   required Category category,
   required List<Document> allDocuments,
 }) async {
+  final l10n = AppLocalizations.of(context)!;
   final docCount = allDocuments.where((d) => d.categoryId == category.id).length;
   final confirmed = await showConfirmDialog(
     context,
-    title: 'Delete "${category.name}"?',
+    title: l10n.deleteCategoryConfirmTitle(category.name),
     message: docCount == 0
-        ? "This category has no documents. This can't be undone."
-        : '$docCount ${docCount == 1 ? 'document' : 'documents'} in this category will '
-              "become uncategorized rather than being deleted. This can't be undone.",
+        ? l10n.deleteCategoryConfirmMessageEmpty
+        : l10n.deleteCategoryConfirmMessageWithDocs(docCount),
   );
   if (!confirmed) return false;
   await ref.read(categoryRepositoryProvider).delete(category.id);

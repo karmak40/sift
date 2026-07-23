@@ -106,3 +106,32 @@ Future<void> deleteDocumentsWithRef(WidgetRef ref, List<Document> documents) {
     reminderService: ref.read(reminderServiceProvider),
   );
 }
+
+/// Sets (or clears, when [expiresAt] is null) a document's expiration and
+/// keeps the scheduled reminder in sync in one call — the two always have to
+/// move together, so both the detail sheet and the Coming Up "Renew" action
+/// go through this rather than repeating the repo+reminder pair. Returns the
+/// updated [Document] so callers can refresh local state without re-reading.
+Future<Document> setDocumentExpirationWithRef(
+  WidgetRef ref,
+  Document document, {
+  required DateTime? expiresAt,
+  int? reminderDaysBefore,
+}) async {
+  final days = reminderDaysBefore ?? document.reminderDaysBefore ?? 30;
+  await ref.read(documentRepositoryProvider).setExpiration(
+        document.id,
+        expiresAt: expiresAt,
+        reminderDaysBefore: days,
+      );
+  final updated = expiresAt == null
+      ? document.copyWith(clearExpiresAt: true)
+      : document.copyWith(expiresAt: expiresAt, reminderDaysBefore: days);
+  final reminderService = ref.read(reminderServiceProvider);
+  if (expiresAt == null) {
+    await reminderService.cancelReminder(document.id);
+  } else {
+    await reminderService.scheduleReminder(updated);
+  }
+  return updated;
+}

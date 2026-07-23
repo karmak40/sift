@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/category.dart';
 import '../../data/models/document.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/core_providers.dart';
 import '../../providers/data_providers.dart';
 import '../../providers/document_actions.dart';
@@ -64,20 +65,21 @@ Future<void> _scanAndReview(
   WidgetRef ref,
   DocumentScannerService scanner,
 ) async {
+  final l10n = AppLocalizations.of(context)!;
   Uint8List? pdf;
   try {
     pdf = await scanner.scanToPdf();
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't scan the document: $e")),
+        SnackBar(content: Text(l10n.scanFailed('$e'))),
       );
     }
     return;
   }
   if (pdf == null || !context.mounted) return; // user cancelled
   final now = DateTime.now();
-  final name = 'Scan ${now.year}-${_two(now.month)}-${_two(now.day)}.pdf';
+  final name = '${l10n.scanFilePrefix} ${now.year}-${_two(now.month)}-${_two(now.day)}.pdf';
   await _showReviewSheet(
     context,
     PreparedFile(name: name, type: DocType.pdf, bytes: pdf, sizeBytes: pdf.length),
@@ -130,6 +132,7 @@ class _AddActionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: _sheetDecoration,
       child: SafeArea(
@@ -141,14 +144,14 @@ class _AddActionSheet extends StatelessWidget {
             _grabber(),
             ListTile(
               leading: Icon(Icons.upload_file, color: SiftColors.accent),
-              title: const Text('Choose files'),
-              subtitle: const Text('Pick one or more documents'),
+              title: Text(l10n.chooseFiles),
+              subtitle: Text(l10n.chooseFilesSubtitle),
               onTap: () => Navigator.of(context).pop(_AddAction.files),
             ),
             ListTile(
               leading: Icon(Icons.document_scanner_outlined, color: SiftColors.accent),
-              title: const Text('Scan document'),
-              subtitle: const Text('Use the camera to capture pages as a PDF'),
+              title: Text(l10n.scanDocument),
+              subtitle: Text(l10n.scanDocumentSubtitle),
               onTap: () => Navigator.of(context).pop(_AddAction.scan),
             ),
             const SizedBox(height: 8),
@@ -213,6 +216,7 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final categories = ref.watch(categoriesProvider).valueOrNull ?? const <Category>[];
     if (_categoryId == null && categories.isNotEmpty) {
       _categoryId = categories.first.id;
@@ -230,7 +234,7 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _grabber(),
-                const Text('Add document', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                Text(l10n.addDocumentTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -248,9 +252,9 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
                 TextField(
                   controller: _nameController,
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    labelText: 'File name',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.fileNameLabel,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -259,7 +263,7 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
                     Expanded(
                       child: DropdownButtonFormField<DocType>(
                         initialValue: _type,
-                        decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
+                        decoration: InputDecoration(labelText: l10n.typeLabel, border: const OutlineInputBorder()),
                         items: DocType.values
                             .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
                             .toList(),
@@ -270,7 +274,7 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         initialValue: _categoryId,
-                        decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
+                        decoration: InputDecoration(labelText: l10n.categoryLabel, border: const OutlineInputBorder()),
                         items: categories
                             .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                             .toList(),
@@ -281,8 +285,8 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
                 ),
                 const SizedBox(height: 15),
                 AiToggleRow(
-                  title: 'Summarize with AI',
-                  subtitle: 'Optional — extract key points',
+                  title: l10n.summarizeWithAi,
+                  subtitle: l10n.aiOptionalSubtitle,
                   value: _aiOn,
                   onChanged: aiFeaturesEnabled ? (v) => setState(() => _aiOn = v) : null,
                 ),
@@ -299,7 +303,7 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Add document'),
+                        : Text(l10n.addDocumentTitle),
                   ),
                 ),
               ],
@@ -343,6 +347,7 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final categories = ref.watch(categoriesProvider).valueOrNull ?? const <Category>[];
     if (_categoryId == null && categories.isNotEmpty) {
       _categoryId = categories.first.id;
@@ -361,10 +366,10 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _grabber(),
-                Text('Add $count documents', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                Text(l10n.addDocumentsCount(count), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Text(
-                  'They\'ll all go into the same category, keeping their file names.',
+                  l10n.batchSameCategoryNote,
                   style: TextStyle(fontSize: 12.5, color: SiftColors.textSecondary),
                 ),
                 const SizedBox(height: 14),
@@ -396,7 +401,7 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
                 const SizedBox(height: 15),
                 DropdownButtonFormField<String>(
                   initialValue: _categoryId,
-                  decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: l10n.categoryLabel, border: const OutlineInputBorder()),
                   items: categories
                       .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                       .toList(),
@@ -404,8 +409,8 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
                 ),
                 const SizedBox(height: 15),
                 AiToggleRow(
-                  title: 'Summarize with AI',
-                  subtitle: 'Optional — extract key points',
+                  title: l10n.summarizeWithAi,
+                  subtitle: l10n.aiOptionalSubtitle,
                   value: _aiOn,
                   onChanged: aiFeaturesEnabled ? (v) => setState(() => _aiOn = v) : null,
                 ),
@@ -422,7 +427,7 @@ class _BatchSheetState extends ConsumerState<_BatchSheet> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : Text('Add $count documents'),
+                        : Text(l10n.addDocumentsCount(count)),
                   ),
                 ),
               ],

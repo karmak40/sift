@@ -2,10 +2,12 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../data/models/document.dart';
+import '../current_localizations.dart';
 
 const _reminderChannelId = 'expiration_reminders';
 
@@ -68,18 +70,24 @@ class ReminderService {
     if (wallClock.isBefore(DateTime.now())) return;
 
     await _ensureInitialized();
+    final l10n = currentLocalizations();
     await _plugin.zonedSchedule(
       id: doc.id,
-      title: 'Expiring soon',
-      body: '"${doc.name}" expires ${_formatDate(expiresAt)}',
+      title: l10n.reminderNotificationTitle,
+      body: l10n.reminderNotificationBody(doc.name, _formatDate(expiresAt)),
       scheduledDate: tz.TZDateTime.from(wallClock, tz.UTC),
-      notificationDetails: const NotificationDetails(
+      // Android caches a notification channel's name/description the first
+      // time it's created and won't retroactively rename it just because the
+      // app's language changed later — a known platform limitation, not
+      // something worth working around for a channel the user never sees
+      // outside their system notification settings.
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _reminderChannelId,
-          'Expiration reminders',
-          channelDescription: 'Reminders for documents you set an expiration date on',
+          l10n.reminderChannelName,
+          channelDescription: l10n.reminderChannelDescription,
         ),
-        iOS: DarwinNotificationDetails(),
+        iOS: const DarwinNotificationDetails(),
       ),
       // "Inexact" is deliberate: exact scheduling needs the user to grant
       // Android's SCHEDULE_EXACT_ALARM permission separately, which is real
@@ -95,10 +103,7 @@ class ReminderService {
     await _plugin.cancel(id: documentId);
   }
 
-  String _formatDate(DateTime d) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return '${months[d.month - 1]} ${d.day}, ${d.year}';
-  }
+  // Uses the app's current locale (kept in sync with `Intl.defaultLocale` by
+  // AppLocaleController) so month names follow the selected language.
+  String _formatDate(DateTime d) => DateFormat.yMMMd().format(d);
 }

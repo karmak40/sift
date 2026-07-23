@@ -4,17 +4,11 @@ import '../data/models/document.dart';
 
 enum LibraryViewMode { grid, list }
 
+// Localized labels live in `library_screen.dart` (`sortOrderLabel`) since
+// they need a `BuildContext` — this file stays free of Flutter/UI imports.
 enum SortOrder { date, name, size }
 
-extension SortOrderLabel on SortOrder {
-  String get label => switch (this) {
-    SortOrder.date => 'Recent',
-    SortOrder.name => 'Name A–Z',
-    SortOrder.size => 'Largest',
-  };
-}
-
-enum MobileTab { library, ai, settings }
+enum MobileTab { library, comingUp, settings }
 
 /// UI-only state: filtering/sorting/view-mode/selection. Mirrors the
 /// prototype's single `state` object, kept separate from the persisted data

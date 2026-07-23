@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/category.dart';
 import '../../data/models/document.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/data_providers.dart';
 import '../theme.dart';
 import '../widgets/category_dot.dart';
@@ -23,6 +24,7 @@ class _ManageCategoriesSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final categories = ref.watch(categoriesProvider).valueOrNull ?? const <Category>[];
     final docs = ref.watch(documentsProvider).valueOrNull ?? const <Document>[];
 
@@ -52,15 +54,15 @@ class _ManageCategoriesSheet extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(18, 12, 18, 8),
                 child: Row(
                   children: [
-                    const Text(
-                      'Categories',
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                    Text(
+                      l10n.categoriesTitle,
+                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                     ),
                     const Spacer(),
                     TextButton.icon(
                       onPressed: () => showNewCategorySheet(context),
                       icon: const Icon(Icons.add, size: 16),
-                      label: const Text('New'),
+                      label: Text(l10n.newCategoryButton),
                     ),
                   ],
                 ),
@@ -70,7 +72,7 @@ class _ManageCategoriesSheet extends ConsumerWidget {
                 child: categories.isEmpty
                     ? Center(
                         child: Text(
-                          'No categories yet.',
+                          l10n.noCategoriesYet,
                           style: TextStyle(color: SiftColors.textMuted, fontSize: 13),
                         ),
                       )
@@ -89,13 +91,13 @@ class _ManageCategoriesSheet extends ConsumerWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  '$count ${count == 1 ? 'file' : 'files'}',
+                                  l10n.fileCount(count),
                                   style: monoStyle(fontSize: 11.5),
                                 ),
                                 const SizedBox(width: 6),
                                 IconButton(
                                   icon: Icon(Icons.delete_outline, color: SiftColors.danger, size: 20),
-                                  tooltip: 'Delete category',
+                                  tooltip: l10n.deleteCategoryTooltip,
                                   onPressed: () => deleteCategoryWithConfirm(
                                     context,
                                     ref,

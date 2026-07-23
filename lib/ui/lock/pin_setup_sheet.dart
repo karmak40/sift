@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_lock_providers.dart';
 import '../theme.dart';
 
@@ -43,7 +44,7 @@ class _PinSetupSheetState extends ConsumerState<_PinSetupSheet> {
 
   void _continueToConfirm() {
     if (_firstController.text.length < _minPinLength) {
-      setState(() => _error = 'PIN must be at least $_minPinLength digits');
+      setState(() => _error = AppLocalizations.of(context)!.pinMinLength(_minPinLength));
       return;
     }
     setState(() {
@@ -55,7 +56,7 @@ class _PinSetupSheetState extends ConsumerState<_PinSetupSheet> {
   Future<void> _confirmAndSave() async {
     if (_confirmController.text != _firstController.text) {
       setState(() {
-        _error = "PINs don't match";
+        _error = AppLocalizations.of(context)!.pinsDontMatch;
         _confirmController.clear();
       });
       return;
@@ -68,6 +69,7 @@ class _PinSetupSheetState extends ConsumerState<_PinSetupSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
@@ -94,14 +96,12 @@ class _PinSetupSheetState extends ConsumerState<_PinSetupSheet> {
                   ),
                 ),
                 Text(
-                  _confirming ? 'Confirm your PIN' : 'Set a PIN',
+                  _confirming ? l10n.confirmYourPin : l10n.setAPin,
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  _confirming
-                      ? 'Enter it one more time'
-                      : "You'll use this to unlock Sift",
+                  _confirming ? l10n.enterItOneMoreTime : l10n.youllUseThisToUnlock,
                   style: TextStyle(fontSize: 12.5, color: SiftColors.textSecondary),
                 ),
                 const SizedBox(height: 20),
@@ -135,7 +135,7 @@ class _PinSetupSheetState extends ConsumerState<_PinSetupSheet> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : Text(_confirming ? 'Save PIN' : 'Continue'),
+                        : Text(_confirming ? l10n.savePin : l10n.continueButton),
                   ),
                 ),
               ],

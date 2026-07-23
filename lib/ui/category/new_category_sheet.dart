@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/models/category.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/core_providers.dart';
 import '../theme.dart';
 import '../widgets/category_dot.dart';
@@ -47,8 +48,9 @@ class _NewCategorySheetState extends ConsumerState<_NewCategorySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final previewName = _nameController.text.trim().isEmpty
-        ? 'Category name'
+        ? l10n.categoryNamePlaceholder
         : _nameController.text.trim();
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -75,22 +77,22 @@ class _NewCategorySheetState extends ConsumerState<_NewCategorySheet> {
                     ),
                   ),
                 ),
-                const Text(
-                  'New category',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                Text(
+                  l10n.newCategoryTitle,
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _nameController,
                   onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    hintText: 'e.g. Warranties',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.nameLabel,
+                    hintText: l10n.categoryNameHint,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text('Color', style: monoStyle(fontSize: 11.5, color: SiftColors.textSecondary)),
+                Text(l10n.colorLabel, style: monoStyle(fontSize: 11.5, color: SiftColors.textSecondary)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 10,
@@ -134,7 +136,7 @@ class _NewCategorySheetState extends ConsumerState<_NewCategorySheet> {
                       const SizedBox(width: 9),
                       Text(previewName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
                       const Spacer(),
-                      Text('preview', style: monoStyle(fontSize: 11)),
+                      Text(l10n.previewLabel, style: monoStyle(fontSize: 11)),
                     ],
                   ),
                 ),
@@ -145,7 +147,7 @@ class _NewCategorySheetState extends ConsumerState<_NewCategorySheet> {
                   child: FilledButton(
                     onPressed: _nameController.text.trim().isEmpty ? null : _submit,
                     style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
-                    child: const Text('Create category'),
+                    child: Text(l10n.createCategoryButton),
                   ),
                 ),
               ],

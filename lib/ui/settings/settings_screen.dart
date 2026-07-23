@@ -5,15 +5,30 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_lock_providers.dart';
+import '../../providers/app_locale_controller.dart';
 import '../../providers/data_providers.dart';
 import '../../providers/library_controller.dart';
 import '../../providers/storage_location_controller.dart';
 import '../category/manage_categories_sheet.dart';
+import '../library/library_screen.dart';
 import '../lock/pin_setup_sheet.dart';
 import '../theme.dart';
 import '../widgets/ai_toggle_row.dart';
 import '../widgets/section_label.dart';
+
+/// Endonyms — each language's own name for itself — deliberately not run
+/// through AppLocalizations: a Russian speaker picking "Deutsch" from the
+/// list should see "Deutsch" regardless of Sift's current display language.
+/// Not `const`: `Locale` overrides `==`/`hashCode`, which Dart doesn't allow
+/// as a compile-time-constant map key.
+final _languageNames = {
+  Locale('en'): 'English',
+  Locale('ru'): 'Русский',
+  Locale('uk'): 'Українська',
+  Locale('de'): 'Deutsch',
+};
 
 /// Choosing where files live on disk only makes sense on a real desktop
 /// filesystem — Android/iOS are sandboxed, and Web has no filesystem at all
@@ -27,6 +42,7 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final docsAsync = ref.watch(documentsProvider);
     final catsAsync = ref.watch(categoriesProvider);
     final uiState = ref.watch(libraryControllerProvider);
@@ -37,15 +53,18 @@ class SettingsScreen extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 32),
       children: [
-        const Text(
-          'Settings',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+        Text(
+          l10n.settingsTitle,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 20),
-        const SectionLabel('AI'),
+        SectionLabel(l10n.generalSectionLabel),
+        const _SettingsCard(children: [_LanguageRow()]),
+        const SizedBox(height: 22),
+        SectionLabel(l10n.aiSectionLabel),
         AiToggleRow(
-          title: 'Summarize new uploads',
-          subtitle: 'Default the AI toggle on when uploading',
+          title: l10n.summarizeNewUploads,
+          subtitle: l10n.summarizeNewUploadsSubtitle,
           value: uiState.aiDefaultOn,
           onChanged: aiFeaturesEnabled
               ? (_) => ref.read(libraryControllerProvider.notifier).toggleAiDefault()
@@ -55,8 +74,8 @@ class SettingsScreen extends ConsumerWidget {
         _SettingsCard(
           children: [
             _SettingsRow(
-              title: 'Summaries created',
-              subtitle: 'Across your whole library',
+              title: l10n.summariesCreatedTitle,
+              subtitle: l10n.summariesCreatedSubtitle,
               trailing: Text(
                 '$aiCount / ${docs.length}',
                 style: TextStyle(
@@ -71,33 +90,119 @@ class SettingsScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 22),
         if (_canChangeStorageLocation) ...[
-          const SectionLabel('Storage'),
+          SectionLabel(l10n.storageSectionLabel),
           const _SettingsCard(children: [_StorageLocationRow()]),
           const SizedBox(height: 22),
         ],
-        const SectionLabel('Library'),
+        SectionLabel(l10n.librarySectionLabel),
         _SettingsCard(
           children: [
             _SettingsRow(
-              title: 'Categories',
-              subtitle: 'Add or remove categories',
+              title: l10n.categoriesTitle,
+              subtitle: l10n.categoriesSubtitle,
               trailing: Text('${cats.length}', style: monoStyle(fontSize: 13, color: SiftColors.textSecondary)),
               onTap: () => showManageCategoriesSheet(context),
             ),
             const Divider(height: 1),
             _SettingsRow(
-              title: 'Default sort',
+              title: l10n.defaultSortTitle,
               trailing: Text(
-                uiState.sortOrder.label,
+                sortOrderLabel(l10n, uiState.sortOrder),
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: SiftColors.accent),
               ),
             ),
           ],
         ),
         const SizedBox(height: 22),
-        const SectionLabel('Security'),
+        SectionLabel(l10n.securitySectionLabel),
         const _SecuritySettings(),
       ],
+    );
+  }
+}
+
+class _LanguageRow extends ConsumerWidget {
+  const _LanguageRow();
+
+  Future<void> _pickLanguage(BuildContext context, WidgetRef ref) async {
+    final current = ref.read(appLocaleControllerProvider).valueOrNull;
+    // `null` from showModalBottomSheet means "dismissed without choosing"
+    // (do nothing); an explicit "System default" tap pops [_systemDefault]
+    // instead, so it can be told apart from a dismiss.
+    final choice = await showModalBottomSheet<Locale>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _LanguagePickerSheet(current: current),
+    );
+    if (choice == null) return;
+    await ref.read(appLocaleControllerProvider.notifier).setLocale(choice == _systemDefault ? null : choice);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final current = ref.watch(appLocaleControllerProvider).valueOrNull;
+    return _SettingsRow(
+      title: l10n.languageTitle,
+      trailing: Text(
+        current == null ? l10n.languageSystemDefault : (_languageNames[current] ?? current.languageCode),
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: SiftColors.accent),
+      ),
+      onTap: () => _pickLanguage(context, ref),
+    );
+  }
+}
+
+/// Sentinel popped by the "System default" list tile — lets the caller tell
+/// an explicit "follow the OS locale" choice apart from the sheet simply
+/// being dismissed (which pops a real `null`).
+const _systemDefault = Locale('_system_default');
+
+class _LanguagePickerSheet extends StatelessWidget {
+  const _LanguagePickerSheet({required this.current});
+  final Locale? current;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFFBFCFD),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 38,
+              height: 4,
+              decoration: BoxDecoration(color: SiftColors.border, borderRadius: BorderRadius.circular(3)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(l10n.languageTitle, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              ),
+            ),
+            ListTile(
+              title: Text(l10n.languageSystemDefault, style: const TextStyle(fontSize: 13.5)),
+              trailing: current == null ? Icon(Icons.check, color: SiftColors.accent) : null,
+              onTap: () => Navigator.of(context).pop(_systemDefault),
+            ),
+            for (final locale in supportedAppLocales)
+              ListTile(
+                title: Text(_languageNames[locale] ?? locale.languageCode, style: const TextStyle(fontSize: 13.5)),
+                trailing: current == locale ? Icon(Icons.check, color: SiftColors.accent) : null,
+                onTap: () => Navigator.of(context).pop(locale),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -106,25 +211,28 @@ class _StorageLocationRow extends ConsumerWidget {
   const _StorageLocationRow();
 
   Future<void> _choose(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final picked = await FilePicker.platform.getDirectoryPath(
-      dialogTitle: 'Choose a folder to store Sift files in',
+      dialogTitle: l10n.chooseFolderDialogTitle,
     );
     if (picked == null) return;
     await ref.read(storageLocationControllerProvider.notifier).changePath(picked);
   }
 
   Future<void> _resetToDefault(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = ref.read(storageLocationControllerProvider.notifier);
     final defaultPath = await controller.defaultPath();
     await controller.changePath(null);
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Files moved back to $defaultPath')),
+      SnackBar(content: Text(l10n.filesMovedBackTo(defaultPath))),
     );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final pathAsync = ref.watch(storageLocationControllerProvider);
     final busy = pathAsync.isLoading;
 
@@ -137,16 +245,16 @@ class _StorageLocationRow extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Files folder',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                Text(
+                  l10n.filesFolderTitle,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   pathAsync.when(
                     data: (path) => path,
-                    loading: () => 'Moving files…',
-                    error: (e, _) => 'Could not read current folder',
+                    loading: () => l10n.movingFiles,
+                    error: (e, _) => l10n.couldNotReadFolder,
                   ),
                   style: monoStyle(fontSize: 11, color: SiftColors.textSecondary),
                   maxLines: 2,
@@ -168,11 +276,11 @@ class _StorageLocationRow extends ConsumerWidget {
               children: [
                 TextButton(
                   onPressed: () => _choose(context, ref),
-                  child: const Text('Change…'),
+                  child: Text(l10n.changeEllipsis),
                 ),
                 TextButton(
                   onPressed: () => _resetToDefault(context, ref),
-                  child: Text('Reset', style: TextStyle(color: SiftColors.textMuted)),
+                  child: Text(l10n.reset, style: TextStyle(color: SiftColors.textMuted)),
                 ),
               ],
             ),
@@ -197,6 +305,7 @@ class _SecuritySettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final enabled = ref.watch(appLockEnabledProvider).valueOrNull ?? false;
 
     return _SettingsCard(
@@ -209,10 +318,10 @@ class _SecuritySettings extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('App Lock', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                    Text(l10n.appLockTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 2),
                     Text(
-                      'Require a PIN or biometric to open Sift',
+                      l10n.appLockSubtitle,
                       style: TextStyle(fontSize: 12, color: SiftColors.textSecondary),
                     ),
                   ],
@@ -229,7 +338,7 @@ class _SecuritySettings extends ConsumerWidget {
         if (enabled) ...[
           const Divider(height: 1),
           _SettingsRow(
-            title: 'Change PIN',
+            title: l10n.changePinTitle,
             trailing: const SizedBox.shrink(),
             onTap: () => showPinSetupSheet(context),
           ),

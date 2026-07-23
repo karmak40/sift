@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import '../services/current_localizations.dart';
 import 'file_storage_service.dart';
 import 'local/database.dart';
 
@@ -43,6 +44,6 @@ class WebFileStorageService implements FileStorageService {
     // There's no real filesystem in a browser sandbox to hand off to an
     // "open with" dialog — only Android/iOS/desktop (IoFileStorageService)
     // support this today.
-    return "Opening files isn't supported in the web preview yet — try Android, iOS, or the Windows app.";
+    return currentLocalizations().openNotSupportedWeb;
   }
 }

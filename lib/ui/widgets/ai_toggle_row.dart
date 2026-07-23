@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../config/app_config.dart';
+import '../../l10n/app_localizations.dart';
 import '../theme.dart';
 
 /// A labeled switch row for AI-related settings. When `AppConfig.aiEnabled`
@@ -55,7 +56,7 @@ class AiToggleRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    disabled ? '$subtitle · disabled for now' : subtitle,
+                    disabled ? AppLocalizations.of(context)!.disabledForNowSuffix(subtitle) : subtitle,
                     style: TextStyle(fontSize: 11, color: SiftColors.textSecondary),
                   ),
                 ],

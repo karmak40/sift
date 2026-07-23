@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../theme.dart';
 
 /// Shown on a document card/row once it's inside its reminder window (or
@@ -35,7 +36,7 @@ class ExpiringBadge extends StatelessWidget {
           Icon(Icons.event_busy, size: 10, color: SiftColors.warning),
           const SizedBox(width: 4),
           Text(
-            'Expiring',
+            AppLocalizations.of(context)!.expiringBadge,
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: SiftColors.warning),
           ),
         ],

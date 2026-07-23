@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../data/models/category.dart';
 import '../../data/models/document.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/core_providers.dart';
 import '../../providers/data_providers.dart';
 import '../../providers/document_actions.dart';
@@ -66,9 +68,10 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
   }
 
   Future<void> _shareDocument() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_doc.storageKey.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This document has no file attached to it.')),
+        SnackBar(content: Text(l10n.noFileAttached)),
       );
       return;
     }
@@ -76,7 +79,7 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
     if (!mounted) return;
     if (bytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('The file is missing from disk.')),
+        SnackBar(content: Text(l10n.fileMissingFromDisk)),
       );
       return;
     }
@@ -89,10 +92,11 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
   }
 
   Future<void> _delete() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showConfirmDialog(
       context,
-      title: 'Delete "${_doc.name}"?',
-      message: 'This removes the document and its file. This can\'t be undone.',
+      title: l10n.deleteDocumentConfirmTitle(_doc.name),
+      message: l10n.deleteDocumentConfirmMessage,
     );
     if (!confirmed) return;
     await deleteDocumentsWithRef(ref, [_doc]);
@@ -100,11 +104,12 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
   }
 
   Future<void> _rename() async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: _doc.name);
     final newName = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Rename document'),
+        title: Text(l10n.renameDocumentTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -114,11 +119,11 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
-            child: const Text('Save'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -148,12 +153,7 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
       lastDate: DateTime(now.year + 50),
     );
     if (picked == null) return;
-    final reminderDaysBefore = _doc.reminderDaysBefore ?? 30;
-    await ref
-        .read(documentRepositoryProvider)
-        .setExpiration(_doc.id, expiresAt: picked, reminderDaysBefore: reminderDaysBefore);
-    final updated = _doc.copyWith(expiresAt: picked, reminderDaysBefore: reminderDaysBefore);
-    await ref.read(reminderServiceProvider).scheduleReminder(updated);
+    final updated = await setDocumentExpirationWithRef(ref, _doc, expiresAt: picked);
     if (mounted) setState(() => _doc = updated);
   }
 
@@ -164,18 +164,18 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
       builder: (_) => const _ReminderLeadSheet(),
     );
     if (choice == null) return;
-    await ref
-        .read(documentRepositoryProvider)
-        .setExpiration(_doc.id, expiresAt: _doc.expiresAt, reminderDaysBefore: choice);
-    final updated = _doc.copyWith(reminderDaysBefore: choice);
-    await ref.read(reminderServiceProvider).scheduleReminder(updated);
+    final updated = await setDocumentExpirationWithRef(
+      ref,
+      _doc,
+      expiresAt: _doc.expiresAt,
+      reminderDaysBefore: choice,
+    );
     if (mounted) setState(() => _doc = updated);
   }
 
   Future<void> _clearExpiration() async {
-    await ref.read(documentRepositoryProvider).setExpiration(_doc.id);
-    await ref.read(reminderServiceProvider).cancelReminder(_doc.id);
-    if (mounted) setState(() => _doc = _doc.copyWith(clearExpiresAt: true));
+    final updated = await setDocumentExpirationWithRef(ref, _doc, expiresAt: null);
+    if (mounted) setState(() => _doc = updated);
   }
 
   Future<void> _generate() async {
@@ -192,13 +192,14 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
       if (!mounted) return;
       setState(() => _generating = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('AI summaries are disabled for now.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.aiDisabledSnackbar)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final doc = _doc;
     final categories = ref.watch(categoriesProvider).valueOrNull;
     final cat = categories == null
@@ -255,7 +256,7 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
-                                        cat?.name ?? 'Uncategorized',
+                                        cat?.name ?? l10n.uncategorized,
                                         style: TextStyle(fontSize: 11, color: SiftColors.accentDark, fontWeight: FontWeight.w600),
                                       ),
                                       const SizedBox(width: 2),
@@ -266,7 +267,7 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                '${doc.sizeLabel} · added ${_formatDate(doc.addedAt)}',
+                                l10n.sizeAddedOn(doc.sizeLabel, _formatDate(doc.addedAt)),
                                 style: monoStyle(fontSize: 10.5),
                               ),
                             ],
@@ -276,12 +277,12 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                     ),
                     IconButton(
                       icon: Icon(Icons.edit_outlined, color: SiftColors.textSecondary),
-                      tooltip: 'Rename document',
+                      tooltip: l10n.renameDocumentTitle,
                       onPressed: _rename,
                     ),
                     IconButton(
                       icon: Icon(Icons.delete_outline, color: SiftColors.danger),
-                      tooltip: 'Delete document',
+                      tooltip: l10n.deleteDocumentTooltip,
                       onPressed: _delete,
                     ),
                     IconButton(
@@ -306,7 +307,7 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        'document preview · ${doc.type.label}',
+                        l10n.documentPreviewLabel(doc.type.label),
                         style: monoStyle(fontSize: 11),
                       ),
                     ),
@@ -323,7 +324,7 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                         Icon(Icons.auto_awesome, size: 16, color: SiftColors.accent),
                         const SizedBox(width: 6),
                         Text(
-                          'AI SUMMARY',
+                          l10n.aiSummaryLabel,
                           style: monoStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -359,7 +360,7 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: _openFile,
-                        child: const Text('Open file'),
+                        child: Text(l10n.openFile),
                       ),
                     ),
                     const SizedBox(width: 9),
@@ -367,7 +368,7 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
                       child: FilledButton.icon(
                         onPressed: _shareDocument,
                         icon: const Icon(Icons.ios_share, size: 16),
-                        label: const Text('Share'),
+                        label: Text(l10n.share),
                         style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
                       ),
                     ),
@@ -382,12 +383,9 @@ class _DocumentDetailSheetState extends ConsumerState<_DocumentDetailSheet> {
   }
 }
 
-String _formatDate(DateTime d) {
-  const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-  return '${months[d.month - 1]} ${d.day.toString().padLeft(2, '0')}';
-}
+// Uses the app's current locale (kept in sync with `Intl.defaultLocale` by
+// AppLocaleController) so month names follow the selected language.
+String _formatDate(DateTime d) => DateFormat.MMMd().format(d);
 
 class _ExpirationSection extends StatelessWidget {
   const _ExpirationSection({
@@ -404,6 +402,7 @@ class _ExpirationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -422,14 +421,14 @@ class _ExpirationSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Expires ${_formatDate(document.expiresAt!)}',
+                        l10n.expiresOn(_formatDate(document.expiresAt!)),
                         style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 3),
                       GestureDetector(
                         onTap: onChangeReminder,
                         child: Text(
-                          'Remind me ${document.reminderDaysBefore ?? 30} days before · change',
+                          l10n.remindMeDaysBeforeChange(document.reminderDaysBefore ?? 30),
                           style: TextStyle(fontSize: 11.5, color: SiftColors.accentDark),
                         ),
                       ),
@@ -438,11 +437,11 @@ class _ExpirationSection extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: onSetDate,
-                  child: const Text('Edit'),
+                  child: Text(l10n.edit),
                 ),
                 TextButton(
                   onPressed: onClear,
-                  child: Text('Clear', style: TextStyle(color: SiftColors.textMuted)),
+                  child: Text(l10n.clear, style: TextStyle(color: SiftColors.textMuted)),
                 ),
               ],
             )
@@ -452,11 +451,11 @@ class _ExpirationSection extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Not tracking an expiration date',
+                    l10n.notTrackingExpiration,
                     style: TextStyle(fontSize: 13, color: SiftColors.textSecondary),
                   ),
                 ),
-                TextButton(onPressed: onSetDate, child: const Text('Set date')),
+                TextButton(onPressed: onSetDate, child: Text(l10n.setDate)),
               ],
             ),
     );
@@ -468,6 +467,7 @@ class _ReminderLeadSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFFFBFCFD),
@@ -492,14 +492,14 @@ class _ReminderLeadSheet extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Remind me before it expires',
+                  l10n.remindBeforeExpiresTitle,
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
             for (final days in _reminderLeadOptions)
               ListTile(
-                title: Text('$days days before', style: const TextStyle(fontSize: 13.5)),
+                title: Text(l10n.daysBeforeOption(days), style: const TextStyle(fontSize: 13.5)),
                 onTap: () => Navigator.of(context).pop(days),
               ),
             const SizedBox(height: 8),
@@ -533,7 +533,7 @@ class _GeneratingCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Reading ${type.label} and extracting key points…',
+              AppLocalizations.of(context)!.readingAndExtracting(type.label),
               style: TextStyle(fontSize: 13, color: SiftColors.textSecondary),
             ),
           ),
@@ -564,7 +564,7 @@ class _SummaryCard extends StatelessWidget {
             style: const TextStyle(fontSize: 14, height: 1.5, color: SiftColors.textPrimary),
           ),
           const SizedBox(height: 14),
-          Text('KEY POINTS', style: monoStyle(fontSize: 10, fontWeight: FontWeight.w700)),
+          Text(AppLocalizations.of(context)!.keyPointsLabel, style: monoStyle(fontSize: 10, fontWeight: FontWeight.w700)),
           const SizedBox(height: 9),
           for (final pt in (summary.points as List))
             Padding(
@@ -605,6 +605,7 @@ class _NoSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final disabled = onSummarize == null;
     return Container(
       padding: const EdgeInsets.all(22),
@@ -616,9 +617,7 @@ class _NoSummaryCard extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            disabled
-                ? 'AI summaries are disabled for now. Enable the AI service to let it read this file and pull out key points.'
-                : 'No summary yet. Turn on AI to read this file and pull out the important points.',
+            disabled ? l10n.aiDisabledLong : l10n.aiNoSummaryYet,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: SiftColors.textSecondary, height: 1.5),
           ),
@@ -626,7 +625,7 @@ class _NoSummaryCard extends StatelessWidget {
           FilledButton.icon(
             onPressed: onSummarize,
             icon: const Icon(Icons.auto_awesome, size: 16),
-            label: const Text('Summarize with AI'),
+            label: Text(l10n.summarizeWithAi),
             style: FilledButton.styleFrom(backgroundColor: SiftColors.accent),
           ),
         ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_lock_providers.dart';
 import '../theme.dart';
 
@@ -27,15 +28,17 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   }
 
   Future<void> _tryBiometric() async {
+    final l10n = AppLocalizations.of(context)!;
     final supported = await ref.read(biometricServiceProvider).isSupported();
     if (!supported || !mounted) return;
-    final ok = await ref.read(biometricServiceProvider).authenticate(reason: 'Unlock Sift');
+    final ok = await ref.read(biometricServiceProvider).authenticate(reason: l10n.biometricUnlockReason);
     if (ok && mounted) {
       ref.read(isUnlockedProvider.notifier).state = true;
     }
   }
 
   Future<void> _submitPin() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_pinController.text.isEmpty) return;
     setState(() {
       _checking = true;
@@ -48,7 +51,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
     } else {
       setState(() {
         _checking = false;
-        _error = 'Incorrect PIN';
+        _error = l10n.incorrectPin;
         _pinController.clear();
       });
     }
@@ -56,6 +59,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Attempt biometric once automatically as soon as the biometric-support
     // check resolves, so a Face ID/Windows Hello prompt appears right away
     // without the user having to tap anything first.
@@ -85,13 +89,13 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                   child: const Icon(Icons.lock_outline, color: Colors.white, size: 28),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Sift is locked',
-                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600),
+                Text(
+                  l10n.siftLocked,
+                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Enter your PIN to continue',
+                  l10n.enterPinToContinue,
                   style: TextStyle(color: SiftColors.textSecondary, fontSize: 13),
                 ),
                 const SizedBox(height: 24),
@@ -124,7 +128,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Unlock'),
+                        : Text(l10n.unlock),
                   ),
                 ),
                 if (biometricSupported.valueOrNull == true) ...[
@@ -132,7 +136,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                   TextButton.icon(
                     onPressed: _tryBiometric,
                     icon: const Icon(Icons.fingerprint, size: 18),
-                    label: const Text('Use biometric unlock'),
+                    label: Text(l10n.useBiometricUnlock),
                   ),
                 ],
               ],
